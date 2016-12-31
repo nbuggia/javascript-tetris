@@ -1,0 +1,10 @@
+div.block {
+  position: absolute;
+  border: 1px solid black;
+  background-color: black;
+}
+
+div.block.occupied {
+  border: 1px solid black;
+  background-color: gray;
+}
