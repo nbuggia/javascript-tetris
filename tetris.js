@@ -1,12 +1,6 @@
 // Basic Tetris implementation
 // https://en.wikipedia.org/wiki/Tetris
 
-/**
- * TODO - I need to add a method to Tetris to add a tetromino to the board, and also remove
- * that tetromino so I can add it again in its new location. I also need to figure out where
- * to insert the isMovePossible() function to gate the game from getting into a broken state.
- */
-
 // Standard board size for a tetris game
 const NUM_COLUMNS = 10;
 const NUM_ROWS = 16;
@@ -14,7 +8,7 @@ const NUM_ROWS = 16;
 // The height and width of a block (they are all squares)
 const BLOCK_SIZE = 30;
 
-const TICKS_MS = 400;
+const TICKS_MS = 1000; //400
 
 const KEY_LEFT = 37;
 const KEY_RIGHT = 39;
@@ -94,9 +88,13 @@ function tetrisRun(element) {
       } else if(KEY_RIGHT == e.keyCode) {
         alert('right');
       } else if(KEY_ENTER == e.keyCode) {
-        tetris.newGame();
-      } else {
-        ;
+        if(STATE_ON == tetris.state) {
+          tetris.pauseGame();        
+        } else if (STATE_PAUSE == tetris.state) {
+          tetris.unPauseGame();
+        } else {
+          tetris.newGame();
+        }
       }
     }
   );
@@ -108,8 +106,7 @@ function tetrisRun(element) {
  * redrawBoard()
  */
 function redrawBoard(tetris, element) {
-  element.innerHTML("");
-
+  element.innerHTML = "";
   drawBoard(tetris, element);
 }
 
@@ -118,26 +115,40 @@ function redrawBoard(tetris, element) {
  */
 function drawBoard(tetris, element) {
   var boardDiv = document.createElement('div');
-  
+  var tetrisBoard = tetris.getBoard();
   boardDiv.id = 'board';
   element.appendChild(boardDiv);
 
-  for(i=0; i<10; i++) {
-    for(j=0; j<10; j++){
-      var blockDiv = document.createElement('div');
-      blockDiv.style.top = (i*BLOCK_SIZE) + 'px';
-      blockDiv.style.left = (j*BLOCK_SIZE) + 'px';
-      blockDiv.style.height = BLOCK_SIZE;
-      blockDiv.style.width = BLOCK_SIZE;
+  for(i=0; i<NUM_ROWS; i++) {
+    var rowDiv = document.createElement('div');
+    rowDiv.classList.add('row');
 
-      if(tetris.board[i][j] == 1) {
-        blockDiv.classList.add('block');
+    var rowString = (i<10) ? ("0"+i) : i;
+    var headerSpan = document.createElement('span');
+    headerSpan.classList.add('headerFooter');
+    headerSpan.innerHTML = "r:" + rowString + "|"; 
+    rowDiv.appendChild(headerSpan);
+
+    for(j=0; j<NUM_COLUMNS; j++){
+      var blockSpan = document.createElement('span');
+
+      if(tetrisBoard[i][j] == 1) {
+        blockSpan.classList.add('occupied');
+        blockSpan.innerHTML = '1';
       } else {
-        blockDiv.classList.add('empty');
+        blockSpan.classList.add('empty');
+        blockSpan.innerHTML = '0';
       }
 
-      boardDiv.appendChild(blockDiv);
+      rowDiv.appendChild(blockSpan);
     }
+
+    var footerSpan = document.createElement('span');
+    footerSpan.classList.add('headerFooter');
+    footerSpan.innerHTML = "|  "; 
+    rowDiv.appendChild(footerSpan);
+
+    boardDiv.appendChild(rowDiv);
   }
 }
 
@@ -152,26 +163,53 @@ function Tetris() {
   this.currentTetrominoRow = null;
   this.currentTetrominoCol = null;
 
-  // initialize the board
+  // initialize the wall. The wall contains all the fallen tetrominos.
+  this.wall = [];
   this.board = [];
-  for(i=0; i<NUM_ROWS; i++) {
-    this.board[i] = [];
-    for(j=0; j<NUM_COLUMNS; j++) {
-      this.board[i][j] = 0;
+  for(r=0; r<NUM_ROWS; r++) {
+    this.wall[r] = [];
+    this.board[r] = [];
+    for(c=0; c<NUM_COLUMNS; c++) {
+      this.wall[r][c] = 0;
+      this.board[r][c] = 0;
     }
   }
 }
 
 /**
- * rotate() rotates the tetromino 90 degrees counter-clockwise
+ * getBoard()
  */
-function rotate(t) {
-    return [
-    [t[0][3], t[1][3], t[2][3], t[3][3]],
-    [t[0][2], t[1][2], t[2][2], t[3][2]],
-    [t[0][1], t[1][1], t[2][1], t[3][1]],
-    [t[0][0], t[1][0], t[2][0], t[3][0]],
-    ];
+Tetris.prototype.getBoard = function() {
+  // draw the active tetromino on the board if the game is on or over
+  if (STATE_ON == this.state || STATE_OVER == this.state) {
+    // copy the wall to the board
+    for(r=0; r<NUM_ROWS; r++) {
+      for(c=0; c<NUM_COLUMNS; c++) {
+        this.board[r][c] = this.wall[r][c];
+      }
+    }
+    // draw the current tetromino on the board
+    for(r=0; r<4; r++) {
+      for(c=0; c<4; c++) {
+        if (this.currentTetromino[r][c] == 1) {
+          this.board[this.currentTetrominoRow+r][this.currentTetrominoCol+c] = 1;
+        }
+      }
+    }
+  } 
+  
+  // show an empty board if the game is paused (no cheating!)
+  else if (STATE_PAUSE == this.state) {
+    for(i=0; i<NUM_ROWS; i++) {
+      for(j=0; j<NUM_COLUMNS; j++) {
+        this.board[i][j] = 0;
+        // TODO - if we are in the middle row, write the word 'PAUSED'
+        //  hit 'enter' to resume game.
+      }
+    }
+  }
+
+  return this.board;
 }
 
 /**
@@ -183,7 +221,7 @@ Tetris.prototype.spawnNewTetromino = function() {
   this.currentTetrominoRow = 0;
   this.currentTetrominoCol = (NUM_COLUMNS/2)-2;
 
-  // Check if this new piece is legal. If not, change the state of the game.
+  // Check if placing this new piece is legal. If not, change the state of the game.
 }
 
 /**
@@ -201,14 +239,28 @@ Tetris.prototype.newGame = function() {
 }
 
 /**
- * isMovePossible()
+ * pauseGame()
+ */
+Tetris.prototype.pauseGame = function () {
+  this.state = STATE_PAUSE;
+}
+
+/**
+ * unPauseGame()
+ */
+Tetris.prototype.unPauseGame = function () {
+  this.state = STATE_ON;
+}
+
+/**
+ * isMovePossible() returns true if the new move is possible
  */
 Tetris.prototype.isMovePossible = function() {
   return true;
 }
 
 /**
- * gameLooop()
+ * gameLooop() returns true if the game status has changed, false if it hasn't.
  */
 Tetris.prototype.loop = function() {
   if (STATE_ON != this.state) {
@@ -216,5 +268,18 @@ Tetris.prototype.loop = function() {
   }
 
   console.log('Game loop running.');
-  this.currentTetrominoRow++;
+//  this.currentTetrominoRow++;
+  return true;
 }
+
+/**
+ * rotate() rotates the tetromino 90 degrees counter-clockwise
+function rotate(t) {
+    return [
+    [t[0][3], t[1][3], t[2][3], t[3][3]],
+    [t[0][2], t[1][2], t[2][2], t[3][2]],
+    [t[0][1], t[1][1], t[2][1], t[3][1]],
+    [t[0][0], t[1][0], t[2][0], t[3][0]],
+    ];
+}
+ */
