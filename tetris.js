@@ -1,6 +1,9 @@
 // Basic Tetris implementation
 // https://en.wikipedia.org/wiki/Tetris
 
+// emun function: https://github.com/RougeWare/Micro-JS-Enum
+Enum=function(){v=arguments;s={all:[],keys:v};for(i=v.length;i--;)s[v[i]]=s.all[i]=i;return s}
+
 // Standard board size for a tetris game
 const NUM_COLUMNS = 10;
 const NUM_ROWS = 16;
@@ -77,7 +80,7 @@ function tetrisRun(element) {
   var intervalHandler = setInterval(
     function () {
     if (tetris.loop()) {
-      redrawBoard(tetris.state, tetris.getBoard(), element);
+      redrawBoard(tetris.getState(), tetris.getBoard(), element);
     }
   }, 
    TICKS_MS);
@@ -86,14 +89,12 @@ function tetrisRun(element) {
   element.addEventListener('keydown', 
     function(e) {
       if(KEY_LEFT == e.keyCode) {
-        alert('left');
+        tetris.moveTetromino(tetris.moveEnum.Left);
       } else if(KEY_RIGHT == e.keyCode) {
-        alert('right');
+        tetris.moveTetromino(tetris.moveEnum.Right);
       } else if(KEY_ENTER == e.keyCode) {
-        if(STATE_ON == tetris.state) {
-          tetris.pauseGame();        
-        } else if (STATE_PAUSE == tetris.state) {
-          tetris.unPauseGame();
+        if(STATE_ON == tetris.getState() || STATE_PAUSE == tetris.getState()) {
+          tetris.togglePauseGame();        
         } else {
           tetris.newGame();
         }
@@ -229,128 +230,180 @@ function drawBoardOn(tetrisState, element, boardDiv, tetrisBoard) {
  * Tetris()
  */
 function Tetris() {
-  this.state = STATE_OFF;
-  this.currentTetromino = null;
-  this.currentTetrominoRow = null;
-  this.currentTetrominoCol = null;
+  // TODO - make row and column arguments to the Tetris object
 
-  // initialize the wall. The wall contains all the fallen tetrominos.
-  this.wall = [];
-  this.board = [];
+  // represents the different ways the player can move the tetromino
+  this.moveEnum = Enum(
+    "RotateClockwise", 
+    "RotateCounterClockwise",
+    "Right",
+    "Left",
+    "Drop");
+
+  // represents the different states the game can be in
+  this.stateEnum = Enum(
+    "Off",
+    "On",
+    "Paused",
+    "Over"
+  )
+
+  // current state of the game (of type this.stateEnum)
+  var state = STATE_OFF;
+
+  // the current falling tetromino
+  var currentTetromino = null;
+
+  // the row of the current falling tetromino (top left corner)
+  var currentTetrominoRow = null;
+
+  // the column of the current falling tetromino (top left corner)
+  var currentTetrominoCol = null;
+
+  // the wall contains all the fallen tetrominos.
+  var wall = [];
+
+  // board holds the combination of the wall and the current tetromio
+  var board = [];
+
+  // initialize the wall and the board 2D arrays
   for(r=0; r<NUM_ROWS; r++) {
-    this.wall[r] = [];
-    this.board[r] = [];
+    wall[r] = [];
+    board[r] = [];
     for(c=0; c<NUM_COLUMNS; c++) {
-      this.wall[r][c] = 0;
-      this.board[r][c] = 0;
+      wall[r][c] = 0;
+      board[r][c] = 0;
     }
   }
-}
 
-/**
- * getBoard()
- */
-Tetris.prototype.getBoard = function() {
-  // draw the active tetromino on the board if the game is on or over
-  if (STATE_ON == this.state || STATE_OVER == this.state) {
-    // copy the wall to the board
-    for(r=0; r<NUM_ROWS; r++) {
-      for(c=0; c<NUM_COLUMNS; c++) {
-        this.board[r][c] = this.wall[r][c];
-      }
-    }
-    // draw the current tetromino on the board
-    for(r=0; r<4; r++) {
-      for(c=0; c<4; c++) {
-        if (this.currentTetromino[r][c] == 1) {
-          this.board[this.currentTetrominoRow+r][this.currentTetrominoCol+c] = 1;
+  /**
+   * getBoard() returns the gameboard showing the current tetromino and the wall
+   */
+  this.getBoard = function() {
+    // draw the active tetromino on the board if the game is on or over
+    if (STATE_ON == state || STATE_OVER == state) {
+      // copy the wall to the board
+      for(r=0; r<NUM_ROWS; r++) {
+        for(c=0; c<NUM_COLUMNS; c++) {
+          board[r][c] = wall[r][c];
         }
       }
-    }
-  } 
-  
-  // show an empty board if the game is paused (no cheating!)
-  else if (STATE_PAUSE == this.state) {
-    for(i=0; i<NUM_ROWS; i++) {
-      for(j=0; j<NUM_COLUMNS; j++) {
-        this.board[i][j] = 0;
-        // TODO - if we are in the middle row, write the word 'PAUSED'
-        //  hit 'enter' to resume game.
+      // draw the current tetromino on the board
+      for(r=0; r<4; r++) {
+        for(c=0; c<4; c++) {
+          if (currentTetromino[r][c] == 1) {
+            board[currentTetrominoRow+r][currentTetrominoCol+c] = 1;
+          }
+        }
       }
+    } 
+    // show an empty board if the game is paused (no cheating!)
+    else if (STATE_PAUSE == state) {
+      for(r=0; r<NUM_ROWS; r++)
+        for(c=0; c<NUM_COLUMNS; c++)
+          board[r][c] = 0;
+    }
+
+    return board;
+  }
+
+  this.getState = function() {
+    return state;
+  }
+
+  /**
+   * newGame()
+   */
+  this.newGame = function() {
+    if (STATE_OFF != state) {
+      console.log('ERROR: Game already in progress.');
+      return;
+    }
+
+    console.log('Starting new game.');
+    state = STATE_ON;
+    spawnNewTetromino();
+  }
+
+  /**
+   * togglePauseGame()
+   */
+  this.togglePauseGame = function () {
+    if (STATE_ON == state) {
+      state = STATE_PAUSE;
+    } else if(STATE_PAUSE == state) {
+      state = STATE_ON;
     }
   }
 
-  return this.board;
-}
+  /**
+   * moveTetromino() returns true if the tetromino was moved, or false if the
+   * requested move was invalid.
+   * 
+   */
+  this.moveTetromino = function(direction) {
+    switch (direction) {
+      case direction.RotateClockwise:
+        break;
+      case direction.RotateCounterClockwise:
+        break;
+      case direction.Left:
+        alert('left');
+        break;
+      case direction.Right:
+        alert('right');
+        break;
+      case direction.Drop:
+        break;
+    }
 
-/**
- * spawnNewTetromino()
- */
-Tetris.prototype.spawnNewTetromino = function() {
-  console.log('Creating a new tetromino.');
-  this.currentTetromino = tetrominoO;
-  this.currentTetrominoRow = 0;
-  this.currentTetrominoCol = (NUM_COLUMNS/2)-2;
-
-  // Check if placing this new piece is legal. If not, change the state of the game.
-}
-
-/**
- * newGame()
- */
-Tetris.prototype.newGame = function() {
-  if (STATE_OFF != this.state) {
-    console.log('ERROR: Game already in progress.');
-    return;
+    return true;
   }
 
-  console.log('Starting new game.');
-  this.state = STATE_ON;
-  this.spawnNewTetromino();
-}
+  /**
+   * gameLooop() returns true if the game status has changed, false if it hasn't.
+   */
+  this.loop = function() {
+    if (STATE_ON != state) {
+      return false;
+    }
 
-/**
- * pauseGame()
- */
-Tetris.prototype.pauseGame = function () {
-  this.state = STATE_PAUSE;
-}
-
-/**
- * unPauseGame()
- */
-Tetris.prototype.unPauseGame = function () {
-  this.state = STATE_ON;
-}
-
-/**
- * isMovePossible() returns true if the new move is possible
- */
-Tetris.prototype.isMovePossible = function() {
-  return true;
-}
-
-/**
- * gameLooop() returns true if the game status has changed, false if it hasn't.
- */
-Tetris.prototype.loop = function() {
-  if (STATE_ON != this.state) {
-    return false;
+    console.log('Game loop running.');
+    currentTetrominoRow++;
+    return true;
   }
 
-  console.log('Game loop running.');
-//  this.currentTetrominoRow++;
-  return true;
-}
 
-/**
- * rotate() rotates the tetromino 90 degrees counter-clockwise
-function rotate(t) {
-    return [
-    [t[0][3], t[1][3], t[2][3], t[3][3]],
-    [t[0][2], t[1][2], t[2][2], t[3][2]],
-    [t[0][1], t[1][1], t[2][1], t[3][1]],
-    [t[0][0], t[1][0], t[2][0], t[3][0]],
-    ];
+  // PRIVATE
+
+  /**
+   * spawnNewTetromino() 
+   */
+  function spawnNewTetromino() {
+    console.log('Creating a new tetromino.');
+    currentTetromino = tetrominoO;
+    currentTetrominoRow = 0;
+    currentTetrominoCol = (NUM_COLUMNS/2)-2;
+
+    // Check if placing this new piece is legal. If not, change the state of the game.
+  }
+
+  /**
+   * isMovePossible() returns true if the new move is possible
+   */
+  function isMovePossible(tetromino, row, colum) {
+    return true;
+  }
+
+  /**
+   * rotate() rotates the tetromino 90 degrees counter-clockwise
+  */
+  function rotate(t) {
+      return [
+      [t[0][3], t[1][3], t[2][3], t[3][3]],
+      [t[0][2], t[1][2], t[2][2], t[3][2]],
+      [t[0][1], t[1][1], t[2][1], t[3][1]],
+      [t[0][0], t[1][0], t[2][0], t[3][0]],
+      ];
+  }
 }
- */
