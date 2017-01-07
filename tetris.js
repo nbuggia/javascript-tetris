@@ -71,11 +71,13 @@ const tetrominoZ = [
 function tetrisRun(element) {
   var tetris = new Tetris();
   
+  drawBoardOff(element);
+
   // game loop
   var intervalHandler = setInterval(
     function () {
     if (tetris.loop()) {
-      redrawBoard(tetris, element);
+      redrawBoard(tetris.state, tetris.getBoard(), element);
     }
   }, 
    TICKS_MS);
@@ -105,17 +107,36 @@ function tetrisRun(element) {
 /**
  * redrawBoard()
  */
-function redrawBoard(tetris, element) {
+function redrawBoard(tetrisState, tetrisBoard, element) {
   element.innerHTML = "";
-  drawBoard(tetris, element);
+  drawBoard(tetrisState, tetrisBoard, element);
 }
 
 /**
  * drawBoard()
  */
-function drawBoard(tetris, element) {
+function drawBoard(tetrisState, tetrisBoard, element) {
   var boardDiv = document.createElement('div');
-  var tetrisBoard = tetris.getBoard();
+  boardDiv.id = 'board';
+  element.appendChild(boardDiv);
+
+  switch (tetrisState) {
+    case STATE_OFF:
+      //drawBoardOff(tetris, element, boardDiv, tetrisBoard);
+      break;
+    case STATE_ON:
+    case STATE_OVER:
+      drawBoardOn(tetrisState, element, boardDiv, tetrisBoard);
+      break;
+    case STATE_PAUSE:
+      drawBoardPaused(tetrisState, element, boardDiv, tetrisBoard);
+      break;
+  }
+
+}
+
+function drawBoardOff(element) {
+  var boardDiv = document.createElement('div');
   boardDiv.id = 'board';
   element.appendChild(boardDiv);
 
@@ -126,7 +147,62 @@ function drawBoard(tetris, element) {
     var rowString = (i<10) ? ("0"+i) : i;
     var headerSpan = document.createElement('span');
     headerSpan.classList.add('headerFooter');
-    headerSpan.innerHTML = "r:" + rowString + "|"; 
+    headerSpan.innerHTML = "r" + rowString + " "; 
+    rowDiv.appendChild(headerSpan);
+
+    for(j=0; j<NUM_COLUMNS; j++){
+      var blockSpan = document.createElement('span');
+      blockSpan.classList.add('empty');
+      blockSpan.innerHTML = '0';
+      rowDiv.appendChild(blockSpan);
+    }
+
+    boardDiv.appendChild(rowDiv);
+  }
+}
+
+function drawBoardPaused(element, boardDiv) {
+  var boardDiv = document.createElement('div');
+  boardDiv.id = 'board';
+  element.appendChild(boardDiv);
+
+  for(r=0; r<NUM_ROWS; r++) {
+    var rowDiv = document.createElement('div');
+    rowDiv.classList.add('row');
+
+    var rowString = (r<10) ? ("0"+r) : r;
+    var headerSpan = document.createElement('span');
+    headerSpan.classList.add('headerFooter');
+    headerSpan.innerHTML = "r" + rowString + " "; 
+    rowDiv.appendChild(headerSpan);
+
+    for(c=0; c<NUM_COLUMNS; c++){
+      if (r == (NUM_ROWS/2)) {
+        var blockSpan = document.createElement('span');
+        blockSpan.classList.add('empty');
+        blockSpan.innerHTML = 'P';
+        rowDiv.appendChild(blockSpan);
+      } else {
+        var blockSpan = document.createElement('span');
+        blockSpan.classList.add('empty');
+        blockSpan.innerHTML = '0';
+        rowDiv.appendChild(blockSpan);
+      }
+    }
+
+    boardDiv.appendChild(rowDiv);
+  }
+}
+
+function drawBoardOn(tetrisState, element, boardDiv, tetrisBoard) {
+  for(i=0; i<NUM_ROWS; i++) {
+    var rowDiv = document.createElement('div');
+    rowDiv.classList.add('row');
+
+    var rowString = (i<10) ? ("0"+i) : i;
+    var headerSpan = document.createElement('span');
+    headerSpan.classList.add('headerFooter');
+    headerSpan.innerHTML = "r" + rowString + " "; 
     rowDiv.appendChild(headerSpan);
 
     for(j=0; j<NUM_COLUMNS; j++){
@@ -142,11 +218,6 @@ function drawBoard(tetris, element) {
 
       rowDiv.appendChild(blockSpan);
     }
-
-    var footerSpan = document.createElement('span');
-    footerSpan.classList.add('headerFooter');
-    footerSpan.innerHTML = "|  "; 
-    rowDiv.appendChild(footerSpan);
 
     boardDiv.appendChild(rowDiv);
   }

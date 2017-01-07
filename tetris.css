@@ -5,8 +5,8 @@ html {
   position: absolute;
   border: 1px solid black;
   background-color: black;
-  font-family: Courier New, Courier, monospace;
-  font-size: 24pt;
+  font-family: monospace;
+  font-size: 18pt;
 }
 
 #board span.occupied {
