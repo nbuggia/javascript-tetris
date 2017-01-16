@@ -429,7 +429,7 @@ function Tetris() {
   }
 
   /**
-   * isMovePossible() returns true if the new move is possible
+   * isMovePossible() returns true if the new move is possible.
    * 
    * @@tetromino - a 2d array representing the tetromino
    * @@moveRow - the row where the tetromino is to be placed
@@ -458,20 +458,6 @@ function Tetris() {
     }
 
     return true;
-  }
-
-  /**
-   * copyTetromino() copies the tetromino shape to the board or the wall.
-   * 
-  */
-  function copyTetromino(tetromino, board, row, column) {
-    for (r=0; r<4; r++) {
-      for (c=0; c<4; c++) {
-        if (currentTetromino[r][c] == 1) {
-          wall[currentTetrominoRow+r][currentTetrominoCol+c] = 1;
-        }
-      }
-    }
   }
 
   /**

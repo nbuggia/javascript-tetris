@@ -1,2 +1,8 @@
-Basic implementation of tetris in JavaScript. This is a simple project to get 
-more experience working with JavaScript in the browser. 
+Basic implementation of tetris in JavaScript. This is my holiday project over 
+Christmas 2016. It is a simple project to get more experience working with 
+JavaScript in the browser. 
+
+Following are my notes from the experience:
+* Object oriented syntax is different in JavaScript vs other languages in the C 
+family. Although, most concepts are supported. 
+* The debugging tools within Chrome are great. 
