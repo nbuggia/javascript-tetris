@@ -232,6 +232,7 @@ function drawBoardOn(tetrisState, element, boardDiv, tetrisBoard) {
 function Tetris() {
   // TODO - make row and column arguments to the Tetris object
   // TODO - move the tetromino shape definitions in here
+  // TODO - expose the TICKS_MS as a method from Tetris that changes with level
 
   // represents the different ways the player can move the tetromino
   this.moveEnum = Enum(
@@ -308,6 +309,8 @@ function Tetris() {
     return board;
   }
 
+  // PUBLIC METHODS (PRIVLIDGED)
+
   /**
    * getState() returns a Tetris.stateEnum to represent the state of the game
    */
@@ -367,7 +370,8 @@ function Tetris() {
   }
 
   /**
-   * gameLooop() returns true if the game status has changed, false if it hasn't.
+   * gameLooop() returns true if the game status has changed, false if it 
+   *  hasn't.
    */
   this.loop = function() {
     if (STATE_ON != state) {
@@ -384,12 +388,11 @@ function Tetris() {
     } else {
       addTetrominoToWall();
     }
-    
+
     return true;
   }
 
-
-  // PRIVATE
+  // PRIVATE METHODS
 
   /**
    * addTetrominoToWall() adds the current tetromino to the wall and spawns a 
@@ -397,27 +400,32 @@ function Tetris() {
    */
   function addTetrominoToWall() {
     // Add tetromino to wall
-    for(r=0; r<4; r++) {
-      for(c=0; c<4; c++) {
-        wall[currentTetrominoRow+r][currentTetrominoCol+c] = 1;
+    for (r=0; r<4; r++) {
+      for (c=0; c<4; c++) {
+        if (currentTetromino[r][c] == 1) {
+          wall[currentTetrominoRow+r][currentTetrominoCol+c] = 1;
+        }
       }
     }
   
     spawnNewTetromino();
   }
 
-
   /**
    * spawnNewTetromino() 
    */
   function spawnNewTetromino() {
     console.log('Creating a new tetromino.');
-    currentTetromino = tetrominoO;
-    currentTetrominoRow = 0;
-    currentTetrominoCol = (NUM_COLUMNS/2)-2;
+    var initialRow = 0;
+    var initialColumn = (NUM_COLUMNS/2)-2;
 
-    // Check if placing this new piece is legal. If not, change the state of 
-    //  the game.
+    if (isMovePossible(tetrominoO, initialRow, initialColumn)) {
+      currentTetromino = tetrominoO;
+      currentTetrominoRow = 0;
+      currentTetrominoCol = initialColumn;
+    } else {
+      state = STATE_OFF;
+    }
   }
 
   /**
@@ -428,28 +436,42 @@ function Tetris() {
    * @@moveColumn - the column where the tetromino is to be placed
    */
   function isMovePossible(tetromino, moveRow, moveColumn) {
-    for(r=0; r<4; r++) {
-      for(c=0; c<4; c++) {
-        if (currentTetromino[r][c] == 1) {
+    for (r=0; r<4; r++) {
+      for (c=0; c<4; c++) {
+        if (tetromino[r][c] == 1) {
           var boardRow = moveRow + r;
           var boardCol = moveColumn + c;
 
-          // is the tetromino hitting the bottom of the board?
-          if (boardRow > NUM_ROWS)
+          // is the tetromino exceeding the bottom of the board?
+          if (boardRow > (NUM_ROWS-1))
             return false;
 
-          // is the tetromino hitting the left or right boundaries of the board?
-          if (boardCol < 0 || boardCol > NUM_COLUMNS)
+          // is the tetromino exceeding the left or right boundaries?
+          if (boardCol < 0 || boardCol > (NUM_COLUMNS-1))
             return false;
 
-          // is the tetromino hitting part of the wall?
-          if (wall[moveRow][moveColumn] == 1)
+          // is the tetromino exceeding part of the wall?
+          if (wall[boardRow][boardCol] == 1)
             return false;
         }
       }
     }
 
     return true;
+  }
+
+  /**
+   * copyTetromino() copies the tetromino shape to the board or the wall.
+   * 
+  */
+  function copyTetromino(tetromino, board, row, column) {
+    for (r=0; r<4; r++) {
+      for (c=0; c<4; c++) {
+        if (currentTetromino[r][c] == 1) {
+          wall[currentTetrominoRow+r][currentTetrominoCol+c] = 1;
+        }
+      }
+    }
   }
 
   /**
