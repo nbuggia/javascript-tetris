@@ -347,26 +347,38 @@ function Tetris() {
 
   /**
    * moveTetromino() returns true if the tetromino was moved, or false if the
-   * requested move was invalid.
+   * requested move was invalid. 
    * 
+   * @@direction - Tetris.moveEnum for list of moves the player can make
    */
   this.moveTetromino = function(direction) {
+    var newRow = currentTetrominoRow;
+    var newCol = currentTetrominoCol;
+    var newTetromino = currentTetromino;
+
     switch (direction) {
-      case direction.RotateClockwise:
+      case this.moveEnum.RotateClockwise:
         break;
-      case direction.RotateCounterClockwise:
+      case this.moveEnum.RotateCounterClockwise:
         break;
-      case direction.Left:
-        alert('left');
+      case this.moveEnum.Left:
+        newCol--;
         break;
-      case direction.Right:
-        alert('right');
+      case this.moveEnum.Right:
+        newCol++;
         break;
-      case direction.Drop:
+      case this.moveEnum.Drop:
         break;
     }
 
-    return true;
+    var didTetrominoMove = isMovePossible(newTetromino, newRow, newCol);
+    if (didTetrominoMove) {
+      currentTetrominoRow = newTetromino;
+      currentTetrominoCol = newCol;
+      currentTetromino = newTetromino;
+    }
+
+    return didTetrominoMove;
   }
 
   /**
