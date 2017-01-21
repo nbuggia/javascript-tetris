@@ -11,7 +11,7 @@ const NUM_ROWS = 16;
 // The height and width of a block (they are all squares)
 const BLOCK_SIZE = 30;
 
-const TICKS_MS = 1000; //400
+const TICKS_MS = 400; //400
 
 const KEY_LEFT = 37;
 const KEY_RIGHT = 39;
@@ -92,6 +92,8 @@ function tetrisRun(element) {
         tetris.moveTetromino(tetris.moveEnum.Left);
       } else if(KEY_RIGHT == e.keyCode) {
         tetris.moveTetromino(tetris.moveEnum.Right);
+      } else if(KEY_DOWN == e.keyCode) {
+        tetris.moveTetromino(tetris.moveEnum.Down);
       } else if(KEY_ENTER == e.keyCode) {
         if(STATE_ON == tetris.getState() || STATE_PAUSE == tetris.getState()) {
           tetris.togglePauseGame();        
@@ -240,7 +242,7 @@ function Tetris() {
     "RotateCounterClockwise",
     "Right",
     "Left",
-    "Drop");
+    "Down");
 
   // represents the different states the game can be in
   this.stateEnum = Enum(
@@ -356,6 +358,10 @@ function Tetris() {
     var newCol = currentTetrominoCol;
     var newTetromino = currentTetromino;
 
+    if(state != STATE_ON) {
+      return false;
+    }
+
     switch (direction) {
       case this.moveEnum.RotateClockwise:
         break;
@@ -367,7 +373,8 @@ function Tetris() {
       case this.moveEnum.Right:
         newCol++;
         break;
-      case this.moveEnum.Drop:
+      case this.moveEnum.Down:
+        newRow++;
         break;
     }
 
