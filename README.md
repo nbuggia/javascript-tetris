@@ -4,5 +4,5 @@ JavaScript in the browser.
 
 Following are my notes from the experience:
 * Object oriented syntax is different in JavaScript vs other languages in the C 
-family. Although, most concepts are supported. 
-* The debugging tools within Chrome are great. 
+family. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
+* The debugging tools within Chrome are great. https://developers.google.com/web/tools/chrome-devtools/

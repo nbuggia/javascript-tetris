@@ -373,7 +373,7 @@ function Tetris() {
 
     var didTetrominoMove = isMovePossible(newTetromino, newRow, newCol);
     if (didTetrominoMove) {
-      currentTetrominoRow = newTetromino;
+      currentTetrominoRow = newRow;
       currentTetrominoCol = newCol;
       currentTetromino = newTetromino;
     }
