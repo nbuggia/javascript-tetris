@@ -225,9 +225,16 @@ function drawBoardOn(tetrisState, element, boardDiv, tetrisBoard) {
 }
 
 /**
- * TetrisBoard()
+ * TetrisBoard() - implements a user interface to play Tetris
  */
 function TetrisBoard() {
+  // Class for the Tetris game logic
+  var Tetris = null;
+
+  // PUBLIC METHODS (PRIVLIDGED)
+
+
+  // PRIVATE METHODS
 
 }
 
@@ -235,7 +242,7 @@ function TetrisBoard() {
 /* GAME LOGIC *****************************************************************/
 
 /**
- * Tetris()
+ * Tetris() - implements all the game logic and state management
  */
 function Tetris(numRows, numCols) {
   
@@ -274,6 +281,9 @@ function Tetris(numRows, numCols) {
   // the column of the current falling tetromino (top left corner)
   var currentTetrominoCol = null;
 
+  // used to hold Tk upcoming tetromino pieces
+  var tetrominoBag = [];
+
   // the wall contains all the fallen tetrominos.
   var wall = [];
 
@@ -282,6 +292,8 @@ function Tetris(numRows, numCols) {
 
   resetGame();
   
+  // PUBLIC METHODS (PRIVLIDGED)
+
   /**
    * getBoard() returns the gameboard showing the current tetromino and the wall
    */
@@ -312,8 +324,6 @@ function Tetris(numRows, numCols) {
 
     return board;
   }
-
-  // PUBLIC METHODS (PRIVLIDGED)
 
   /**
    * getState() returns a Tetris.stateEnum to represent the state of the game
@@ -436,7 +446,41 @@ function Tetris(numRows, numCols) {
         board[r][c] = 0;
       }
     }
+
+    // initialize the tetrominoBag
+
   }
+
+  /**
+   * getNextTetromino() - 
+   */
+  function getNextTetromino() {
+    if (tetrominoBag.length == 0) {
+      // refill the bag with two sets of every tetromino piece
+      tetrominoBag.push(tetrominoO, tetrominoI, tetrominoT, tetrominoJ, 
+        tetrominoS, tetrominoZ);
+      tetrominoBag.push(tetrominoO, tetrominoI, tetrominoT, tetrominoJ, 
+        tetrominoS, tetrominoZ);
+      
+      // shuffle the pieces in a statistically reasonable way
+      // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+      var count = tetrominoBag.length;
+      var i;
+      var temp;
+
+      while (count) {
+        i = Math.floor(Math.random() * count);
+        count--;
+        temp = tetrominoBag[i];
+        tetrominoBag[count] = tetrominoBag[i];
+        tetrominoBag[i] = temp;
+      }
+    }
+
+    // return the top entry and remove it from the bag
+    return tetrominoBag.splice(0, 1);
+  }
+
 
   /**
    * addTetrominoToWall() adds the current tetromino to the wall and spawns a 
@@ -462,9 +506,10 @@ function Tetris(numRows, numCols) {
     console.log('Creating a new tetromino.');
     var initialRow = 0;
     var initialColumn = (numCols/2)-2;
+    var newTetromino = getNextTetromino();
 
-    if (isMovePossible(tetrominoO, initialRow, initialColumn)) {
-      currentTetromino = tetrominoO;
+    if (isMovePossible(newTetromino, initialRow, initialColumn)) {
+      currentTetromino = newTetromino;
       currentTetrominoRow = 0;
       currentTetrominoCol = initialColumn;
     } else {
