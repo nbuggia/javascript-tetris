@@ -4,9 +4,8 @@
 // emun function: https://github.com/RougeWare/Micro-JS-Enum
 Enum=function(){v=arguments;s={all:[],keys:v};for(i=v.length;i--;)s[v[i]]=s.all[i]=i;return s}
 
-// Standard board size for a tetris game
-const NUM_COLUMNS = 10;
 const NUM_ROWS = 16;
+const NUM_COLUMNS = 10;
 
 // The height and width of a block (they are all squares)
 const BLOCK_SIZE = 30;
@@ -27,9 +26,9 @@ const STATE_OVER = 2;
 const STATE_PAUSE = 3;
 
 const tetrominoO = [
+  [0, 1, 1, 0],
+  [0, 1, 1, 0],
   [0, 0, 0, 0],
-  [0, 1, 1, 0],
-  [0, 1, 1, 0],
   [0, 0, 0, 0],
 ];
 
@@ -135,7 +134,6 @@ function drawBoard(tetrisState, tetrisBoard, element) {
       drawBoardPaused(tetrisState, element, boardDiv, tetrisBoard);
       break;
   }
-
 }
 
 function drawBoardOff(element) {
@@ -226,13 +224,24 @@ function drawBoardOn(tetrisState, element, boardDiv, tetrisBoard) {
   }
 }
 
+/**
+ * TetrisBoard()
+ */
+function TetrisBoard() {
+
+}
+
 /* GAME LOGIC *****************************************************************/
 
 /**
  * Tetris()
  */
-function Tetris() {
-  // TODO - make row and column arguments to the Tetris object
+function Tetris(numRows, numCols) {
+  
+  // Standard board size for a tetris game
+  var numRows = numRows || 16;
+  var numCols = numCols || 10;
+
   // TODO - move the tetromino shape definitions in here
   // TODO - expose the TICKS_MS as a method from Tetris that changes with level
 
@@ -270,16 +279,8 @@ function Tetris() {
   // board holds the combination of the wall and the current tetromio
   var board = [];
 
-  // initialize the wall and the board 2D arrays
-  for(r=0; r<NUM_ROWS; r++) {
-    wall[r] = [];
-    board[r] = [];
-    for(c=0; c<NUM_COLUMNS; c++) {
-      wall[r][c] = 0;
-      board[r][c] = 0;
-    }
-  }
-
+  resetGame();
+  
   /**
    * getBoard() returns the gameboard showing the current tetromino and the wall
    */
@@ -287,8 +288,8 @@ function Tetris() {
     // draw the active tetromino on the board if the game is on or over
     if (STATE_ON == state || STATE_OVER == state) {
       // copy the wall to the board
-      for(r=0; r<NUM_ROWS; r++) {
-        for(c=0; c<NUM_COLUMNS; c++) {
+      for(r=0; r<numRows; r++) {
+        for(c=0; c<numCols; c++) {
           board[r][c] = wall[r][c];
         }
       }
@@ -303,8 +304,8 @@ function Tetris() {
     } 
     // show an empty board if the game is paused (no cheating!)
     else if (STATE_PAUSE == state) {
-      for(r=0; r<NUM_ROWS; r++)
-        for(c=0; c<NUM_COLUMNS; c++)
+      for(r=0; r<numRows; r++)
+        for(c=0; c<numCols; c++)
           board[r][c] = 0;
     }
 
@@ -324,12 +325,13 @@ function Tetris() {
    * newGame()
    */
   this.newGame = function() {
-    if (STATE_OFF != state) {
+    if (STATE_OFF != state && STATE_OVER != state) {
       console.log('ERROR: Game already in progress.');
       return;
     }
 
     console.log('Starting new game.');
+    resetGame();
     state = STATE_ON;
     spawnNewTetromino();
   }
@@ -414,6 +416,28 @@ function Tetris() {
   // PRIVATE METHODS
 
   /**
+   * resetGame() - sets all the variables to play the game from the beginning.
+   */
+  function resetGame() {
+    state = STATE_OFF;
+    currentTetromino = null;
+    currentTetrominoRow = null;
+    currentTetrominoCol = null;
+    wall = [];
+    board = [];
+
+    // initialize the wall and the board 2D arrays
+    for(r=0; r<numRows; r++) {
+      wall[r] = [];
+      board[r] = [];
+      for(c=0; c<numCols; c++) {
+        wall[r][c] = 0;
+        board[r][c] = 0;
+      }
+    }
+  }
+
+  /**
    * addTetrominoToWall() adds the current tetromino to the wall and spawns a 
    *  new tetromino.
    */
@@ -436,14 +460,15 @@ function Tetris() {
   function spawnNewTetromino() {
     console.log('Creating a new tetromino.');
     var initialRow = 0;
-    var initialColumn = (NUM_COLUMNS/2)-2;
+    var initialColumn = (numCols/2)-2;
 
     if (isMovePossible(tetrominoO, initialRow, initialColumn)) {
       currentTetromino = tetrominoO;
       currentTetrominoRow = 0;
       currentTetrominoCol = initialColumn;
     } else {
-      state = STATE_OFF;
+      state = STATE_OVER;
+      console.log('Game over, you lose :(');
     }
   }
 
@@ -462,14 +487,14 @@ function Tetris() {
           var boardCol = moveColumn + c;
 
           // is the tetromino exceeding the bottom of the board?
-          if (boardRow > (NUM_ROWS-1))
+          if (boardRow > (numRows-1))
             return false;
 
           // is the tetromino exceeding the left or right boundaries?
-          if (boardCol < 0 || boardCol > (NUM_COLUMNS-1))
+          if (boardCol < 0 || boardCol > (numCols-1))
             return false;
 
-          // is the tetromino exceeding part of the wall?
+          // is the tetromino overlapping any part of the wall?
           if (wall[boardRow][boardCol] == 1)
             return false;
         }
