@@ -1,8 +1,4 @@
 // Basic Tetris implementation
-// https://en.wikipedia.org/wiki/Tetris
-
-// emun function: https://github.com/RougeWare/Micro-JS-Enum
-Enum=function(){v=arguments;s={all:[],keys:v};for(i=v.length;i--;)s[v[i]]=s.all[i]=i;return s}
 
 const NUM_ROWS = 16;
 const NUM_COLUMNS = 10;
@@ -26,10 +22,10 @@ const STATE_OVER = 2;
 const STATE_PAUSE = 3;
 
 const tetrominoO = [
-  [0, 1, 1, 0],
-  [0, 1, 1, 0],
-  [0, 0, 0, 0],
-  [0, 0, 0, 0],
+  [9, 1, 1, 9],
+  [9, 1, 1, 9],
+  [9, 9, 9, 9],
+  [9, 9, 9, 9],
 ];
 
 const tetrominoI = [
@@ -47,6 +43,13 @@ const tetrominoT = [
 ];
 
 const tetrominoJ = [
+  [0, 0, 0, 0],
+  [0, 0, 1, 0],
+  [0, 0, 1, 0],
+  [0, 1, 1, 0],
+];
+
+const tetrominoL = [
   [0, 0, 0, 0],
   [0, 0, 1, 0],
   [0, 0, 1, 0],
@@ -154,7 +157,7 @@ function drawBoardOff(element) {
     for(j=0; j<NUM_COLUMNS; j++){
       var blockSpan = document.createElement('span');
       blockSpan.classList.add('empty');
-      blockSpan.innerHTML = '0';
+      blockSpan.innerHTML = 0;
       rowDiv.appendChild(blockSpan);
     }
 
@@ -214,7 +217,7 @@ function drawBoardOn(tetrisState, element, boardDiv, tetrisBoard) {
         blockSpan.innerHTML = '1';
       } else {
         blockSpan.classList.add('empty');
-        blockSpan.innerHTML = '0';
+        blockSpan.innerHTML = '9';
       }
 
       rowDiv.appendChild(blockSpan);
@@ -243,14 +246,16 @@ function TetrisBoard() {
 
 /**
  * Tetris() - implements all the game logic and state management
+ *            https://en.wikipedia.org/wiki/Tetris
  */
 function Tetris(numRows, numCols) {
+  // emun function: https://github.com/RougeWare/Micro-JS-Enum
+  Enum=function(){v=arguments;s={all:[],keys:v};for(i=v.length;i--;)s[v[i]]=s.all[i]=i;return s}
   
   // Standard board size for a tetris game
   var numRows = numRows || 16;
   var numCols = numCols || 10;
 
-  // TODO - move the tetromino shape definitions in here
   // TODO - expose the TICKS_MS as a method from Tetris that changes with level
 
   // represents the different ways the player can move the tetromino
@@ -268,6 +273,52 @@ function Tetris(numRows, numCols) {
     "Paused",
     "Over"
   )
+
+  // used to index each of the tetrominos
+  this.tetrominoEnum = Enum(
+    "O", "I", "T", "J", "L", "S", "Z"
+  )
+
+  // color for the index for each of the tetrominos
+  // https://en.wikipedia.org/wiki/Tetris#Colors_of_Tetriminos
+  this.tetrominoColorEnum = Enum(
+    "Yellow", "Cyan", "Purple",  "Blue", "Orange", "Lime", "Red"
+  )
+
+  // used to represent blank spaces in the board and tetromino grids
+  this.blank = 9;
+
+  // grids to represent each tetromino shape. Number is the index in 
+  // tetrominoEnum, and cross references with tetrominoColorEnum
+  const tetrominos =
+    [[[9, 0, 0, 9],
+      [9, 0, 0, 9],
+      [9, 9, 9, 9],
+      [9, 9, 9, 9]],
+     [[9, 9, 1, 9],
+      [9, 9, 1, 9],
+      [9, 9, 1, 9],
+      [9, 9, 1, 9]],
+     [[9, 2, 2, 2],
+      [9, 9, 2, 9],
+      [9, 9, 9, 9],
+      [9, 9, 9, 9]],
+     [[9, 9, 3, 3],
+      [9, 3, 3, 9],
+      [9, 9, 9, 9],
+      [9, 9, 9, 9]],
+     [[9, 4, 4, 9],
+      [9, 9, 4, 4],
+      [9, 9, 9, 9],
+      [9, 9, 9, 9]],
+     [[9, 9, 5, 9],
+      [9, 9, 5, 9],
+      [9, 5, 5, 9],
+      [9, 9, 9, 9]],
+     [[9, 6, 9, 9],
+      [9, 6, 9, 9],
+      [9, 6, 6, 9],
+      [9, 9, 9, 9]]];
 
   // current state of the game (of type this.stateEnum)
   var state = STATE_OFF;
@@ -309,7 +360,7 @@ function Tetris(numRows, numCols) {
       // draw the current tetromino on the board
       for(r=0; r<4; r++) {
         for(c=0; c<4; c++) {
-          if (currentTetromino[r][c] == 1) {
+          if (currentTetromino[r][c] != this.blank) {
             board[currentTetrominoRow+r][currentTetrominoCol+c] = 1;
           }
         }
@@ -319,7 +370,7 @@ function Tetris(numRows, numCols) {
     else if (STATE_PAUSE == state) {
       for(r=0; r<numRows; r++)
         for(c=0; c<numCols; c++)
-          board[r][c] = 0;
+          board[r][c] = this.blank;
     }
 
     return board;
@@ -442,13 +493,10 @@ function Tetris(numRows, numCols) {
       wall[r] = [];
       board[r] = [];
       for(c=0; c<numCols; c++) {
-        wall[r][c] = 0;
-        board[r][c] = 0;
+        wall[r][c] = this.blank;
+        board[r][c] = this.blank;
       }
     }
-
-    // initialize the tetrominoBag
-
   }
 
   /**
@@ -457,28 +505,24 @@ function Tetris(numRows, numCols) {
   function getNextTetromino() {
     if (tetrominoBag.length == 0) {
       // refill the bag with two sets of every tetromino piece
-      tetrominoBag.push(tetrominoO, tetrominoI, tetrominoT, tetrominoJ, 
-        tetrominoS, tetrominoZ);
-      tetrominoBag.push(tetrominoO, tetrominoI, tetrominoT, tetrominoJ, 
-        tetrominoS, tetrominoZ);
+      tetrominoBag.push(tetrominoO, tetrominoO, tetrominoI, tetrominoI, 
+        tetrominoJ, tetrominoJ, tetrominoL, tetrominoL, tetrominoT, tetrominoT, 
+        tetrominoS, tetrominoS, tetrominoZ, tetrominoZ);
       
       // shuffle the pieces in a statistically reasonable way
       // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
-      var count = tetrominoBag.length;
-      var i;
-      var temp;
+      var j, temp;
 
-      while (count) {
-        i = Math.floor(Math.random() * count);
-        count--;
-        temp = tetrominoBag[i];
-        tetrominoBag[count] = tetrominoBag[i];
-        tetrominoBag[i] = temp;
+      for (i=tetrominoBag.length-1; i>0; i--) {
+        j = Math.floor(Math.random() * i);
+        temp = tetrominoBag[j];
+        tetrominoBag[i] = tetrominoBag[j];
+        tetrominoBag[j] = temp;
       }
     }
 
     // return the top entry and remove it from the bag
-    return tetrominoBag.splice(0, 1);
+    return tetrominoBag.splice(0, 1)[0];
   }
 
 
@@ -490,7 +534,7 @@ function Tetris(numRows, numCols) {
     // Add tetromino to wall
     for (r=0; r<4; r++) {
       for (c=0; c<4; c++) {
-        if (currentTetromino[r][c] == 1) {
+        if (currentTetromino[r][c] != this.blank) {
           wall[currentTetrominoRow+r][currentTetrominoCol+c] = 1;
         }
       }
@@ -528,7 +572,7 @@ function Tetris(numRows, numCols) {
   function isMovePossible(tetromino, moveRow, moveColumn) {
     for (r=0; r<4; r++) {
       for (c=0; c<4; c++) {
-        if (tetromino[r][c] == 1) {
+        if (tetromino[r][c] != this.blank) {
           var boardRow = moveRow + r;
           var boardCol = moveColumn + c;
 
@@ -541,7 +585,7 @@ function Tetris(numRows, numCols) {
             return false;
 
           // is the tetromino overlapping any part of the wall?
-          if (wall[boardRow][boardCol] == 1)
+          if (wall[boardRow][boardCol] != this.blank)
             return false;
         }
       }
