@@ -1,44 +1,56 @@
 // Basic Tetris implementation
 
-/**
- * tetrisRun()
- */
 function tetrisRun(element) {
-  var tetrisBoard = new TetrisBoard(element);
-  tetrisBoard.drawBoard();
+  let tetrisGame = new TetrisGame(element);
+  tetrisGame.drawGame();
   
   // game loop
-  var intervalHandler = setInterval(
+  let intervalHandler = setInterval(
     function () {
-      if (tetrisBoard.loop()) {
-        tetrisBoard.redrawBoard();
+      if (tetrisGame.loop()) {
+        tetrisGame.redrawGame();
       }
     }, 
-    tetrisBoard.getTicks()
+    tetrisGame.getTicks()
   );
   
   // key handler
-  element.addEventListener('keydown', tetrisBoard.keyHandler()); 
+  element.addEventListener('keydown', function(e) {
+      tetrisGame.keyHandler(e);
+    }
+  ); 
 }
 
 /* BOARD LOGIC ****************************************************************/
 
 /**
- * TetrisBoard() - implements a user interface to play Tetris
+ * TetrisGame() - implements a user interface to play Tetris
+ * 
+ * @@ document - reference to the HTML document
+ * @@ elementId - the id for the div inside which the Tetris game will be 
+ *  rendered. If the div doesn't exist, we'll create it.
  */
-function TetrisBoard(element) {
+function TetrisGame(elementId) {
   // Class for the Tetris game logic
-  var tetris = new Tetris();
-
-  // The HTML div where we will render the game
-  var gameElement = element;
-
-  // the HTML div where we will render the tetris board
-  var boardElement = null;
+  let tetris = new Tetris();
 
   // ID's for the various HTML divs we create and use
-  const gameElementId = "tetrisGame";
-  const boardElementId = "board";
+  const gameElementId = elementId;
+  const boardElementId = 'board';
+
+  // The HTML div where we will render the game
+  let gameElement = document.getElementById(gameElementId);
+  if (null === gameElement) {
+    gameElement = document.createElement('div');
+    gameElement.id = gameElementId;
+    document.body.appendChild(gameElement);
+  }
+
+  // the HTML div where we will render various features of the game
+  let boardElement = null;
+  let scoreElement = null;
+  let stateElement = null;
+  let nextTetrominoElement = null;
 
   // hard coded keys
   const keyLeft = 37;
@@ -46,7 +58,7 @@ function TetrisBoard(element) {
   const keyUp = 38;
   const keyDown = 40;
   const keySpacebar = 32;
-  const keyEnter = 13;
+  const keyEnter = 13;  
 
   // PUBLIC METHODS (PRIVLIDGED)
 
@@ -56,9 +68,10 @@ function TetrisBoard(element) {
   this.drawGame = function() {
     boardElement = document.createElement('div');
     boardElement.id = boardElementId;
-    drawBoard();
-    
+    drawBoard(boardElement);
     gameElement.appendChild(boardElement);
+
+    console.log(boardElement);
   }
 
   /**
@@ -109,30 +122,28 @@ function TetrisBoard(element) {
     }
   }
 
-  // PRIVATE METHODS
+  // PROTECTED METHODS
 
   /**
    * drawBoard()
    */
-  function drawBoard() {
-    var board = tetris.getBoard();
+  function drawBoard(boardElement) {
+    let board = tetris.getBoard();
 
     for(r=0; r<tetris.getNumRows(); r++) {
       // create a row and a label for the row "r01 "
-      var rowDiv = document.createElement('div');
+      let rowDiv = document.createElement('div');
       rowDiv.classList.add('row');
-      var rowString = (r<10) ? ("0"+r) : r;
-      var headerSpan = document.createElement('span');
-      headerSpan.classList.add('headerFooter');
-      headerSpan.innerHTML = "r" + rowString + " "; 
-      rowDiv.appendChild(headerSpan);
 
-      // if game is paused or off, then fill the board with tetris.blank
-      // TODO
+      let rowLabelSpan = document.createElement('span');
+      rowLabelSpan.classList.add('headerFooter');
+      rowLabelSpan.innerHTML = `r${(r<10) ? ('0'+r) : r} `; 
+
+      rowDiv.appendChild(rowLabelSpan);
 
       // fill in the board grid with the right shape and color
       for(c=0; c<tetris.getNumCols(); c++){
-        var blockSpan = document.createElement('span');
+        let blockSpan = document.createElement('span');
         switch (board[r][c]) {
           case tetris.tetrominoEnum.O:
             blockSpan.classList.add(
@@ -173,7 +184,7 @@ function TetrisBoard(element) {
         rowDiv.appendChild(blockSpan);
       }
 
-      boardDiv.appendChild(rowDiv);
+      boardElement.appendChild(rowDiv);
     }
   }
 
@@ -205,6 +216,7 @@ function TetrisBoard(element) {
  * Tetris() - implements all the game logic and state management
  *            https://en.wikipedia.org/wiki/Tetris
  */
+
 function Tetris(numRows, numCols) {
   // emun function: https://github.com/RougeWare/Micro-JS-Enum
   Enum=function(){v=arguments;s={all:[],keys:v};for(i=v.length;i--;)s[v[i]]=s.all[i]=i;return s}
@@ -218,23 +230,16 @@ function Tetris(numRows, numCols) {
     "Down");
 
   // represents the different states the game can be in
-  this.stateEnum = Enum(
-    "Off",
-    "On",
-    "Paused",
-    "Over"
-  )
+  this.stateEnum = Enum("Off", "On", "Paused", "Over");
 
   // used to index each of the tetrominos
-  this.tetrominoEnum = Enum(
-    "O", "I", "T", "J", "L", "S", "Z"
-  )
+  this.tetrominoEnum = Enum("O", "I", "T", "J", "L", "S", "Z");
 
   // color for the index for each of the tetrominos
   // https://en.wikipedia.org/wiki/Tetris#Colors_of_Tetriminos
   this.tetrominoColorEnum = Enum(
     "Yellow", "Cyan", "Purple",  "Blue", "Orange", "Lime", "Red"
-  )
+  );
 
   // grids to represent each tetromino shape. Number is the index in 
   // tetrominoEnum, and cross references with tetrominoColorEnum
@@ -293,13 +298,11 @@ function Tetris(numRows, numCols) {
   // used to hold Tk upcoming tetromino pieces
   var tetrominoBag = [];
 
-  // the wall contains all the fallen tetrominos.
+  // the wall contains all the fallen tetrominos. Board holds the combination of 
+  //  the wall and the current tetromio
   var wall = [];
-
-  // board holds the combination of the wall and the current tetromio
   var board = [];
-
-  resetGame();
+  resetWallAndBoard();
   
   // PUBLIC METHODS (PRIVLIDGED)
 
@@ -324,11 +327,14 @@ function Tetris(numRows, numCols) {
         }
       }
     } 
-    // show an empty board if the game is paused (no cheating!)
-    else if (this.stateEnum.Pause == state) {
-      for(r=0; r<numRows; r++)
-        for(c=0; c<numCols; c++)
+
+    // show an empty board if the game is paused (no cheating!) or off
+    else if (this.stateEnum.Pause == state || this.stateEnum.Off == state) {
+      for(r=0; r<numRows; r++) {
+        for(c=0; c<numCols; c++) {
           board[r][c] = this.blank;
+        }
+      }
     }
 
     return board;
@@ -349,13 +355,13 @@ function Tetris(numRows, numCols) {
     }
 
     console.log('Starting new game.');
-    resetGame();
+    this.resetGame();
     state = this.stateEnum.On;
     spawnNewTetromino();
   }
 
   /**
-   * togglePauseGame()
+   * togglePauseGame() toggles the game state between paused and unpaused
    */
   this.togglePauseGame = function () {
     if (this.stateEnum.On == state) {
@@ -368,54 +374,11 @@ function Tetris(numRows, numCols) {
   }
 
   /**
-   * moveTetromino() returns true if the tetromino was moved, or false if the
-   * requested move was invalid. 
-   * 
-   * @@direction - Tetris.moveEnum for list of moves the player can make
-   */
-  this.moveTetromino = function(direction) {
-    var newRow = currentTetrominoRow;
-    var newCol = currentTetrominoCol;
-    var newTetromino = currentTetromino;
-
-    if (this.stateEnum.On != state) {
-      return false;
-    }
-
-    switch (direction) {
-      case this.moveEnum.RotateClockwise:
-        break;
-      case this.moveEnum.RotateCounterClockwise:
-        break;
-      case this.moveEnum.Left:
-        newCol--;
-        break;
-      case this.moveEnum.Right:
-        newCol++;
-        break;
-      case this.moveEnum.Down:
-        newRow++;
-        break;
-    }
-
-    var didTetrominoMove = isMovePossible(newTetromino, newRow, newCol);
-    if (didTetrominoMove) {
-      currentTetrominoRow = newRow;
-      currentTetrominoCol = newCol;
-      currentTetromino = newTetromino;
-    }
-
-    return didTetrominoMove;
-  }
-
-  /**
-   * gameLooop() returns true if the game status has changed, false if it 
-   *  hasn't.
+   * gameLooop() updates the state of the game based on one turn passing. 
+   *  Returns true if the game state has changed, false if it hasn't.
    */
   this.loop = function() {
-    if (this.stateEnum.On != state) {
-      return false;
-    }
+    if (this.stateEnum.On != state) return false;
 
     console.log('Game loop running.');
 
@@ -431,12 +394,10 @@ function Tetris(numRows, numCols) {
     return true;
   }
 
-  // PRIVATE METHODS
-
   /**
    * resetGame() - sets all the variables to play the game from the beginning.
    */
-  function resetGame() {
+  this.resetGame = function() {
     state = this.stateEnum.Off;
     currentTetromino = null;
     currentTetrominoRow = null;
@@ -444,7 +405,14 @@ function Tetris(numRows, numCols) {
     wall = [];
     board = [];
 
-    // initialize the wall and the board 2D arrays
+    resetWallAndBoard();
+  }
+
+  // PROTECTED METHODS
+
+  function resetWallAndBoard() {
+    // TODO - do I need to explicity check if they don't equal null, then free
+    //  memory and try again
     for(r=0; r<numRows; r++) {
       wall[r] = [];
       board[r] = [];
@@ -462,30 +430,30 @@ function Tetris(numRows, numCols) {
     if (0 == tetrominoBag.length) {
       // refill the bag with two sets of every tetromino piece
       tetrominoBag.push( 
-        tetrominos[tetrominoEnum.O], 
-        tetrominos[tetrominoEnum.O],
-        tetrominos[tetrominoEnum.I],
-        tetrominos[tetrominoEnum.I],
-        tetrominos[tetrominoEnum.J],
-        tetrominos[tetrominoEnum.J],
-        tetrominos[tetrominoEnum.L],
-        tetrominos[tetrominoEnum.L],
-        tetrominos[tetrominoEnum.T],
-        tetrominos[tetrominoEnum.T],
-        tetrominos[tetrominoEnum.S],
-        tetrominos[tetrominoEnum.S],
-        tetrominos[tetrominoEnum.Z],
-        tetrominos[tetrominoEnum.Z]
+        tetrominos[this.tetrominoEnum.O], 
+        tetrominos[this.tetrominoEnum.O],
+        tetrominos[this.tetrominoEnum.I],
+        tetrominos[this.tetrominoEnum.I],
+        tetrominos[this.tetrominoEnum.J],
+        tetrominos[this.tetrominoEnum.J],
+        tetrominos[this.tetrominoEnum.L],
+        tetrominos[this.tetrominoEnum.L],
+        tetrominos[this.tetrominoEnum.T],
+        tetrominos[this.tetrominoEnum.T],
+        tetrominos[this.tetrominoEnum.S],
+        tetrominos[this.tetrominoEnum.S],
+        tetrominos[this.tetrominoEnum.Z],
+        tetrominos[this.tetrominoEnum.Z]
       );        
       
       // shuffle the pieces in a statistically reasonable way
       // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
-      var j, temp;
+      var swapIndex, temp;
       for (i=tetrominoBag.length-1; i>0; i--) {
-        j = Math.floor(Math.random() * i);
-        temp = tetrominoBag[j];
-        tetrominoBag[i] = tetrominoBag[j];
-        tetrominoBag[j] = temp;
+        swapIndex = Math.floor(Math.random() * i);
+        temp = tetrominoBag[swapIndex];
+        tetrominoBag[i] = tetrominoBag[swapIndex];
+        tetrominoBag[swapIndex] = temp;
       }
     }
 
@@ -575,3 +543,45 @@ function Tetris(numRows, numCols) {
       ];
   }
 }
+
+/**
+ * moveTetromino() returns true if the tetromino was moved, or false if the
+ * requested move was invalid. 
+ * 
+ * @@direction - Tetris.moveEnum for list of moves the player can make
+ */
+Tetris.prototype.moveTetromino = function(direction) {
+  var newRow = currentTetrominoRow;
+  var newCol = currentTetrominoCol;
+  var newTetromino = currentTetromino;
+
+  if (this.stateEnum.On != state) {
+    return false;
+  }
+
+  switch (direction) {
+    case this.moveEnum.RotateClockwise:
+      break;
+    case this.moveEnum.RotateCounterClockwise:
+      break;
+    case this.moveEnum.Left:
+      newCol--;
+      break;
+    case this.moveEnum.Right:
+      newCol++;
+      break;
+    case this.moveEnum.Down:
+      newRow++;
+      break;
+  }
+
+  var didTetrominoMove = isMovePossible(newTetromino, newRow, newCol);
+  if (didTetrominoMove) {
+    currentTetrominoRow = newRow;
+    currentTetrominoCol = newCol;
+    currentTetromino = newTetromino;
+  }
+
+  return didTetrominoMove;
+}
+
