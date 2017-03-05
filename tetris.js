@@ -15,7 +15,8 @@ function tetrisRun(element) {
   );
   
   // key handler
-  element.addEventListener('keydown', function(e) {
+  document.body.addEventListener('keydown', 
+    function(e) {
       tetrisGame.keyHandler(e);
     }
   ); 
@@ -34,6 +35,14 @@ function TetrisGame(elementId) {
   // Class for the Tetris game logic
   let tetris = new Tetris();
 
+  // hard coded keys
+  const keyLeft = 37;
+  const keyRight = 39;
+  const keyUp = 38;
+  const keyDown = 40;
+  const keySpacebar = 32;
+  const keyEnter = 13;  
+
   // ID's for the various HTML divs we create and use
   const gameElementId = elementId;
   const boardElementId = 'board';
@@ -51,14 +60,6 @@ function TetrisGame(elementId) {
   let scoreElement = null;
   let stateElement = null;
   let nextTetrominoElement = null;
-
-  // hard coded keys
-  const keyLeft = 37;
-  const keyRight = 39;
-  const keyUp = 38;
-  const keyDown = 40;
-  const keySpacebar = 32;
-  const keyEnter = 13;  
 
   // PUBLIC METHODS (PRIVLIDGED)
 
@@ -94,6 +95,13 @@ function TetrisGame(elementId) {
    */
   this.getTicks = function() {
     tetris.getTicks();
+  }
+
+  /**
+   * getGameElement()
+   */
+  this.getGameElement = function() {
+    return this.gameElement;
   }
 
   /**
@@ -134,11 +142,9 @@ function TetrisGame(elementId) {
       // create a row and a label for the row "r01 "
       let rowDiv = document.createElement('div');
       rowDiv.classList.add('row');
-
       let rowLabelSpan = document.createElement('span');
       rowLabelSpan.classList.add('headerFooter');
       rowLabelSpan.innerHTML = `r${(r<10) ? ('0'+r) : r} `; 
-
       rowDiv.appendChild(rowLabelSpan);
 
       // fill in the board grid with the right shape and color
@@ -217,7 +223,7 @@ function TetrisGame(elementId) {
  *            https://en.wikipedia.org/wiki/Tetris
  */
 
-function Tetris(numRows, numCols) {
+function Tetris(rows, columns) {
   // emun function: https://github.com/RougeWare/Micro-JS-Enum
   Enum=function(){v=arguments;s={all:[],keys:v};for(i=v.length;i--;)s[v[i]]=s.all[i]=i;return s}
   
@@ -277,31 +283,31 @@ function Tetris(numRows, numCols) {
   this.blank = 9;
 
   // Standard board size for a tetris game
-  var numRows = numRows || 16;
-  var numCols = numCols || 10;
+  let numRows = rows || 16;
+  let numCols = columns || 10;
 
   // the time interval before a block will fall to the next row down (gravity)
-  var ticksMs = 400;
+  let ticksMs = 400;
 
   // current state of the game (of type this.stateEnum)
-  var state = this.stateEnum.Off;
+  let state = this.stateEnum.Off;
 
   // the current falling tetromino
-  var currentTetromino = null;
+  let currentTetromino = null;
 
   // the row of the current falling tetromino (top left corner)
-  var currentTetrominoRow = null;
+  let currentTetrominoRow = null;
 
   // the column of the current falling tetromino (top left corner)
-  var currentTetrominoCol = null;
+  let currentTetrominoCol = null;
 
   // used to hold Tk upcoming tetromino pieces
-  var tetrominoBag = [];
+  let tetrominoBag = [];
 
   // the wall contains all the fallen tetrominos. Board holds the combination of 
   //  the wall and the current tetromio
-  var wall = [];
-  var board = [];
+  let wall = [];
+  let board = [];
   resetWallAndBoard();
   
   // PUBLIC METHODS (PRIVLIDGED)
