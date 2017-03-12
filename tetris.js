@@ -1,3 +1,5 @@
+// https://scotch.io/bar-talk/4-javascript-design-patterns-you-should-know
+
 // Basic Tetris implementation
 
 function tetrisRun(element) {
@@ -283,8 +285,8 @@ function Tetris(rows, columns) {
   this.blank = 9;
 
   // Standard board size for a tetris game
-  let numRows = rows || 16;
-  let numCols = columns || 10;
+  this.numRows = rows || 16;
+  this.numCols = columns || 10;
 
   // the time interval before a block will fall to the next row down (gravity)
   let ticksMs = 400;
@@ -308,13 +310,21 @@ function Tetris(rows, columns) {
   //  the wall and the current tetromio
   let wall = [];
   let board = [];
-  resetWallAndBoard();
+
+  for (r=0; r<this.numRows; r++) {
+    wall[r] = [];
+    board[r] = [];
+    for (c=0; c<this.numCols; c++) {
+      wall[r][c] = this.blank;
+      board[r][c] = this.blank;
+    }
+  }
 
   // METHODS
 
   this.getState = function() {return state;}
-  this.getNumRows = function() {return numRows;}
-  this.getNumCols = function() { return numCols;}
+  this.getNumRows = function() {return this.numRows;}
+  this.getNumCols = function() { return this.numCols;}
   this.getTicks = function() {return ticksMs;}
 
   /**
@@ -324,8 +334,8 @@ function Tetris(rows, columns) {
     // draw the active tetromino on the board if the game is on or over
     if (state == this.stateEnum.On || state == this.stateEnum.Over) {
       // copy the wall to the board
-      for (r=0; r<numRows; r++) {
-        for (c=0; c<numCols; c++) {
+      for (r=0; r<this.numRows; r++) {
+        for (c=0; c<this.numCols; c++) {
           board[r][c] = wall[r][c];
         }
       }
@@ -341,8 +351,8 @@ function Tetris(rows, columns) {
 
     // show an empty board if the game is paused (no cheating!) or off
     else if (state == this.stateEnum.Pause || state == this.stateEnum.Off) {
-      for(r=0; r<numRows; r++) {
-        for(c=0; c<numCols; c++) {
+      for(r=0; r<this.numRows; r++) {
+        for(c=0; c<this.numCols; c++) {
           board[r][c] = this.blank;
         }
       }
@@ -507,11 +517,11 @@ function Tetris(rows, columns) {
           var boardCol = moveColumn + c;
 
           // is the tetromino exceeding the bottom of the board?
-          if (boardRow > (numRows-1))
+          if (boardRow > (this.numRows-1))
             return false;
 
           // is the tetromino exceeding the left or right boundaries?
-          if (boardCol < 0 || boardCol > (numCols-1))
+          if (boardCol < 0 || boardCol > (this.numCols-1))
             return false;
 
           // is the tetromino overlapping any part of the wall?
@@ -543,10 +553,10 @@ function Tetris(rows, columns) {
 Tetris.prototype.resetWallAndBoard = function() {
   // TODO - do I need to explicity check if they don't equal null, then free
   //  memory and try again
-  for (r=0; r<numRows; r++) {
+  for (r=0; r<this.numRows; r++) {
     wall[r] = [];
     board[r] = [];
-    for (c=0; c<numCols; c++) {
+    for (c=0; c<this.numCols; c++) {
       wall[r][c] = this.blank;
       board[r][c] = this.blank;
     }
