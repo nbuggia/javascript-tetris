@@ -308,15 +308,15 @@ function Tetris(rows, columns) {
 
   // the wall contains all the fallen tetrominos. Board holds the combination of 
   //  the wall and the current tetromio
-  let wall = [];
-  let board = [];
+  this.wall = [];
+  this.board = [];
 
   for (r=0; r<this.numRows; r++) {
-    wall[r] = [];
-    board[r] = [];
+    this.wall[r] = [];
+    this.board[r] = [];
     for (c=0; c<this.numCols; c++) {
-      wall[r][c] = this.blank;
-      board[r][c] = this.blank;
+      this.wall[r][c] = this.blank;
+      this.board[r][c] = this.blank;
     }
   }
 
@@ -324,7 +324,7 @@ function Tetris(rows, columns) {
 
   this.getState = function() {return state;}
   this.getNumRows = function() {return this.numRows;}
-  this.getNumCols = function() { return this.numCols;}
+  this.getNumCols = function() {return this.numCols;}
   this.getTicks = function() {return ticksMs;}
 
   /**
@@ -336,14 +336,14 @@ function Tetris(rows, columns) {
       // copy the wall to the board
       for (r=0; r<this.numRows; r++) {
         for (c=0; c<this.numCols; c++) {
-          board[r][c] = wall[r][c];
+          this.board[r][c] = this.wall[r][c];
         }
       }
       // draw the current tetromino on the board
       for (r=0; r<4; r++) {
         for (c=0; c<4; c++) {
           if (this.blank != currentTetromino[r][c]) {
-            board[currentTetrominoRow+r][currentTetrominoCol+c] = 1;
+            this.board[currentTetrominoRow+r][currentTetrominoCol+c] = 1;
           }
         }
       }
@@ -351,14 +351,14 @@ function Tetris(rows, columns) {
 
     // show an empty board if the game is paused (no cheating!) or off
     else if (state == this.stateEnum.Pause || state == this.stateEnum.Off) {
-      for(r=0; r<this.numRows; r++) {
-        for(c=0; c<this.numCols; c++) {
-          board[r][c] = this.blank;
+      for (r=0; r<this.numRows; r++) {
+        for (c=0; c<this.numCols; c++) {
+          this.board[r][c] = this.blank;
         }
       }
     }
 
-    return board;
+    return this.board;
   }
 
   /**
@@ -421,8 +421,8 @@ function Tetris(rows, columns) {
     currentTetromino = null;
     currentTetrominoRow = null;
     currentTetrominoCol = null;
-    wall = [];
-    board = [];
+    this.wall = [];
+    this.board = [];
 
     this.resetWallAndBoard();
   }
@@ -474,7 +474,7 @@ function Tetris(rows, columns) {
     for (r=0; r<4; r++) {
       for (c=0; c<4; c++) {
         if (currentTetromino[r][c] != this.blank) {
-          wall[currentTetrominoRow+r][currentTetrominoCol+c] = 1;
+          this.wall[currentTetrominoRow+r][currentTetrominoCol+c] = 1;
           // TODO preserve the color of the tetromino
         }
       }
@@ -489,8 +489,8 @@ function Tetris(rows, columns) {
   this.spawnNewTetromino = function() {
     console.log('Creating a new tetromino.');
     var initialRow = 0;
-    var initialColumn = (numCols/2)-2;
-    var newTetromino = getNextTetromino();
+    var initialColumn = (this.numCols/2)-2;
+    var newTetromino = this.getNextTetromino();
 
     if (this.isMovePossible(newTetromino, initialRow, initialColumn)) {
       currentTetromino = newTetromino;
@@ -525,7 +525,7 @@ function Tetris(rows, columns) {
             return false;
 
           // is the tetromino overlapping any part of the wall?
-          if (wall[boardRow][boardCol] != this.blank)
+          if (this.wall[boardRow][boardCol] != this.blank)
             return false;
         }
       }
@@ -554,11 +554,11 @@ Tetris.prototype.resetWallAndBoard = function() {
   // TODO - do I need to explicity check if they don't equal null, then free
   //  memory and try again
   for (r=0; r<this.numRows; r++) {
-    wall[r] = [];
-    board[r] = [];
+    this.wall[r] = [];
+    this.board[r] = [];
     for (c=0; c<this.numCols; c++) {
-      wall[r][c] = this.blank;
-      board[r][c] = this.blank;
+      this.wall[r][c] = this.blank;
+      this.board[r][c] = this.blank;
     }
   }
 }
