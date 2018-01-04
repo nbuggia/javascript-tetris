@@ -20,3 +20,10 @@ html {
 #board span.headerFooter {
   color: darkslategray;
 }
+
+#board .cyan { color: cyan; }
+#board .purple { color: purple; }
+#board .blue {color: blue; }
+#board .orange {color: orange; }
+#board .lime {color: lime; }
+#board .red {color: red; }

@@ -1,220 +1,222 @@
 // https://scotch.io/bar-talk/4-javascript-design-patterns-you-should-know
+// jstherightway.org
+// tutorial: https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object_building_practice
 
 // Basic Tetris implementation
 
 function tetrisRun(element) {
-  let tetrisGame = new TetrisGame(element);
-  tetrisGame.drawGame();
+    let tetrisGame = new TetrisGame(element);
+    tetrisGame.drawGame();
   
-  // game loop
-  let intervalHandler = setInterval(
-    function () {
-      if (tetrisGame.loop()) {
-        tetrisGame.redrawGame();
-      }
-    }, 
-    tetrisGame.getTicks()
-  );
+    // game loop
+    let intervalHandler = setInterval(
+        function () {
+            if (tetrisGame.loop()) {
+                tetrisGame.redrawGame();
+            }
+        }, 
+        tetrisGame.getTicks();
+    );
   
-  // key handler
-  document.body.addEventListener('keydown', 
-    function(e) {
-      tetrisGame.keyHandler(e);
-    }
-  ); 
+    // key handler
+    document.body.addEventListener("keydown", 
+        function(e) {
+            tetrisGame.keyHandler(e);
+        }
+    ); 
 }
 
 /* BOARD LOGIC ****************************************************************/
 
 /**
- * TetrisGame() - implements a user interface to play Tetris
+ * TetrisGame() - implements the user interface to play Tetris
  * 
  * @@ document - reference to the HTML document
  * @@ elementId - the id for the div inside which the Tetris game will be 
  *  rendered. If the div doesn't exist, we'll create it.
  */
 function TetrisGame(elementId) {
-  // Class for the Tetris game logic
-  let tetris = new Tetris();
+    // Class for the Tetris game logic
+    let tetris = new Tetris();
 
-  // hard coded keys
-  const keyLeft = 37;
-  const keyRight = 39;
-  const keyUp = 38;
-  const keyDown = 40;
-  const keySpacebar = 32;
-  const keyEnter = 13;  
+    // hard coded keys
+    const keyLeft = 37;
+    const keyRight = 39;
+    const keyUp = 38;
+    const keyDown = 40;
+    const keySpacebar = 32;
+    const keyEnter = 13;
 
-  // ID's for the various HTML divs we create and use
-  const gameElementId = elementId;
-  const boardElementId = 'board';
+    // ID's for the various HTML divs we create and use
+    const gameElementId = elementId;
+    const boardElementId = "board";
 
-  // The HTML div where we will render the game
-  let gameElement = document.getElementById(gameElementId);
-  if (gameElement === null) {
-    gameElement = document.createElement('div');
-    gameElement.id = gameElementId;
-    document.body.appendChild(gameElement);
-  }
-
-  // the HTML div where we will render various features of the game
-  let boardElement = null;
-  let scoreElement = null;
-  let stateElement = null;
-  let nextTetrominoElement = null;
-
-  // PUBLIC METHODS (PRIVLIDGED)
-
-  /**
-   * drawGame()
-   */
-  this.drawGame = function() {
-    boardElement = document.createElement('div');
-    boardElement.id = boardElementId;
-    drawBoard(boardElement);
-    gameElement.appendChild(boardElement);
-
-    console.log(boardElement);
-  }
-
-  /**
-   * redrawGame()
-   */
-  this.redrawGame = function() {
-    gameElement.innerHTML = "";
-    this.drawGame();
-  }
-
-  /**
-   * loop()
-   */
-  this.loop = function() {
-    return tetris.loop();
-  }
-
-  /**
-   * getTicks()
-   */
-  this.getTicks = function() {
-    return tetris.getTicks();
-  }
-
-  /**
-   * getGameElement()
-   */
-  this.getGameElement = function() {
-    return this.gameElement;
-  }
-
-  /**
-   * keyHandler()
-   */
-  this.keyHandler = function(keyEvent) {
-    switch (keyEvent.keyCode) {
-      case keyLeft:
-        tetris.moveTetromino(tetris.moveEnum.Left);
-        break;
-      case keyRight:
-        tetris.moveTetromino(tetris.moveEnum.Right);
-        break;
-      case keyDown:
-        tetris.moveTetromino(tetris.moveEnum.Down);
-        break;
-      case keyEnter:
-      case keySpacebar:
-        if (tetris.stateEnum.On == tetris.getState() 
-            || tetris.stateEnum.Pause == tetris.getState()) {
-          tetris.togglePauseGame();        
-        } else {
-          tetris.newGame();
-        }
-        break;
+    // The HTML div where we will render the game
+    let gameElement = document.getElementById(gameElementId);
+    if (gameElement === null) {
+        gameElement = document.createElement("div");
+        gameElement.id = gameElementId;
+        document.body.appendChild(gameElement);
     }
-  }
 
-  // PROTECTED METHODS
+    // the HTML div where we will render various features of the game
+    let boardElement = null;
+    let scoreElement = null;
+    let stateElement = null;
+    let nextTetrominoElement = null;
 
-  /**
-   * drawBoard()
+    // PUBLIC METHODS (PRIVLIDGED)
+
+    /**
+     * drawGame()
+     */
+    this.drawGame = function() {
+        boardElement = document.createElement("div");
+        boardElement.id = boardElementId;
+        drawBoard(boardElement);
+        gameElement.appendChild(boardElement);
+
+        console.log(boardElement);
+    };
+
+    /**
+     * redrawGame()
+     */
+    this.redrawGame = function() {
+        gameElement.innerHTML = "";
+        this.drawGame();
+    };
+
+    /**
+     * loop()
+     */
+    this.loop = function() {
+        return tetris.loop();
+    };
+
+    /**
+     * getTicks()
+     */
+    this.getTicks = function() {
+        return tetris.getTicks();
+    };
+
+    /**
+     * getGameElement()
+     */
+    this.getGameElement = function() {
+        return this.gameElement;
+    };
+
+    /**
+     * keyHandler()
    */
-  function drawBoard(boardElement) {
-    let board = tetris.getBoard();
-
-    for (r=0; r<tetris.getNumRows(); r++) {
-      // create a row and a label for the row "r01 "
-      let rowDiv = document.createElement('div');
-      rowDiv.classList.add('row');
-      let rowLabelSpan = document.createElement('span');
-      rowLabelSpan.classList.add('headerFooter');
-      rowLabelSpan.innerHTML = `r${(r<10) ? ('0'+r) : r} `; 
-      rowDiv.appendChild(rowLabelSpan);
-
-      // fill in the board grid with the right shape and color
-      for (c=0; c<tetris.getNumCols(); c++){
-        let blockSpan = document.createElement('span');
-        switch (board[r][c]) {
-          case tetris.tetrominoEnum.O:
-            blockSpan.classList.add(
-              tetris.tetrominoColorEnum.keys[tetrominoColorEnum.Yellow]
-            );
-            blockSpan.innerHTML = '0';
+    this.keyHandler = function(keyEvent) {
+        switch (keyEvent.keyCode) {
+        case keyLeft:
+            tetris.moveTetromino(tetris.moveEnum.Left);
             break;
-          case tetris.tetrominoEnum.I:
-            blockSpan.classList.add('Cyan');
-            blockSpan.innerHTML = '1';
+        case keyRight:
+            tetris.moveTetromino(tetris.moveEnum.Right);
             break;
-          case tetris.tetrominoEnum.T:
-            blockSpan.classList.add('Purple');
-            blockSpan.innerHTML = '2';
+        case keyDown:
+            tetris.moveTetromino(tetris.moveEnum.Down);
             break;
-          case tetris.tetrominoEnum.J:
-            blockSpan.classList.add('Blue');
-            blockSpan.innerHTML = '3';
-            break;
-          case tetris.tetrominoEnum.L:
-            blockSpan.classList.add('Orange');
-            blockSpan.innerHTML = '4';
-            break;
-          case tetris.tetrominoEnum.S:
-            blockSpan.classList.add('Lime');
-            blockSpan.innerHTML = '5';
-            break;
-          case tetris.tetrominoEnum.Z:
-            blockSpan.classList.add('Red');
-            blockSpan.innerHTML = '6';
-            break;
-          case tetris.blank:
-            blockSpan.classList.add('empty');
-            blockSpan.innerHTML = '9';
+        case keyEnter:
+        case keySpacebar:
+            if (tetris.getState() == tetris.stateEnum.On
+                  || tetris.getState() == tetris.stateEnum.Pause) {
+                tetris.togglePauseGame();
+            } else {
+                tetris.newGame();
+            }
             break;
         }
+    };
 
-        rowDiv.appendChild(blockSpan);
-      }
+    // PROTECTED METHODS
 
-      boardElement.appendChild(rowDiv);
+    /**
+     * drawBoard()
+     */
+    function drawBoard(boardElement) {
+        let board = tetris.getBoard();
+
+        for (let r=0; r<tetris.getNumRows(); r++) {
+            // create a row and a label for the row "r01 "
+            let rowDiv = document.createElement("div");
+            rowDiv.classList.add("row");
+            let rowLabelSpan = document.createElement("span");
+            rowLabelSpan.classList.add("headerFooter");
+            rowLabelSpan.innerHTML = `r${(r<10) ? ("0"+r) : r} `; 
+            rowDiv.appendChild(rowLabelSpan);
+
+            // fill in the board grid with the right shape and color
+            for (let c=0; c<tetris.getNumCols(); c++){
+                let blockSpan = document.createElement("span");
+                switch (board[r][c]) {
+                case tetris.tetrominoEnum.O:
+                    blockSpan.classList.add(
+                        tetris.tetrominoColorEnum.keys[tetrominoColorEnum.Yellow]
+                    );
+                    blockSpan.innerHTML = "0";
+                    break;
+                case tetris.tetrominoEnum.I:
+                    blockSpan.classList.add("cyan");
+                    blockSpan.innerHTML = "1";
+                    break;
+                case tetris.tetrominoEnum.T:
+                    blockSpan.classList.add("purple");
+                    blockSpan.innerHTML = "2";
+                    break;
+                case tetris.tetrominoEnum.J:
+                    blockSpan.classList.add("blue");
+                    blockSpan.innerHTML = "3";
+                    break;
+                case tetris.tetrominoEnum.L:
+                    blockSpan.classList.add("orange");
+                    blockSpan.innerHTML = "4";
+                    break;
+                case tetris.tetrominoEnum.S:
+                    blockSpan.classList.add("lime");
+                    blockSpan.innerHTML = "5";
+                    break;
+                case tetris.tetrominoEnum.Z:
+                    blockSpan.classList.add("red");
+                    blockSpan.innerHTML = "6";
+                    break;
+                case tetris.blank:
+                    blockSpan.classList.add("empty");
+                    blockSpan.innerHTML = "9";
+                    break;
+                }
+
+                rowDiv.appendChild(blockSpan);
+            }
+
+            boardElement.appendChild(rowDiv);
+        }
     }
-  }
 
-  /**
-   * drawScore()
-   */
-  function drawScore() { }
+    /**
+     * drawScore()
+     */
+    function drawScore() { }
 
-  /**
-   * drawState()
-   */
-  function drawState() { }
+    /**
+     * drawState()
+     */
+    function drawState() { }
 
-  /**
-   * drawStats()
-   */
-  function drawStats() { }
+    /**
+     * drawStats()
+     */
+    function drawStats() { }
 
-  /**
-   * drawNextTetromino()
-   */
-  function drawNextTetromino() { }
+    /**
+     * drawNextTetromino()
+     */
+    function drawNextTetromino() { }
 }
 
 
@@ -311,10 +313,10 @@ function Tetris(rows, columns) {
   this.wall = [];
   this.board = [];
 
-  for (r=0; r<this.numRows; r++) {
+  for (let r=0; r<this.numRows; r++) {
     this.wall[r] = [];
     this.board[r] = [];
-    for (c=0; c<this.numCols; c++) {
+    for (let c=0; c<this.numCols; c++) {
       this.wall[r][c] = this.blank;
       this.board[r][c] = this.blank;
     }
@@ -334,25 +336,28 @@ function Tetris(rows, columns) {
     // draw the active tetromino on the board if the game is on or over
     if (this.state == this.stateEnum.On || this.state == this.stateEnum.Over) {
       // copy the wall to the board
-      for (r=0; r<this.numRows; r++) {
-        for (c=0; c<this.numCols; c++) {
+      for (let r=0; r<this.numRows; r++) {
+        for (let c=0; c<this.numCols; c++) {
           this.board[r][c] = this.wall[r][c];
         }
       }
       // draw the current tetromino on the board
-      for (r=0; r<4; r++) {
-        for (c=0; c<4; c++) {
-          if (this.blank != this.currentTetromino[r][c]) {
-            this.board[this.currentTetrominoRow+r][this.currentTetrominoCol+c] = 1;
+      for (let r=0; r<4; r++) {
+        for (let c=0; c<4; c++) {
+          if (this.currentTetromino[r][c] != this.blank) {
+            let row_index = this.currentTetrominoRow+r;
+            let col_index = this.currentTetrominoCol+c;
+            this.board[row_index][col_index] = 1;
           }
         }
       }
     } 
 
     // show an empty board if the game is paused (no cheating!) or off
-    else if (this.state == this.stateEnum.Pause || this.state == this.stateEnum.Off) {
-      for (r=0; r<this.numRows; r++) {
-        for (c=0; c<this.numCols; c++) {
+    else if (this.state == this.stateEnum.Pause || 
+             this.state == this.stateEnum.Off) {
+      for (let r=0; r<this.numRows; r++) {
+        for (let c=0; c<this.numCols; c++) {
           this.board[r][c] = this.blank;
         }
       }
@@ -365,7 +370,8 @@ function Tetris(rows, columns) {
    * newGame()
    */
   this.newGame = function() {
-    if (this.state != this.stateEnum.Off && this.state != this.stateEnum.Over) {
+    if (this.state != this.stateEnum.Off && 
+        this.state != this.stateEnum.Over) {
       console.log('ERROR: Game already in progress.');
       return;
     }
@@ -453,7 +459,7 @@ function Tetris(rows, columns) {
       // shuffle the pieces in a statistically reasonable way
       // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
       var swapIndex, temp;
-      for (i=this.tetrominoBag.length-1; i>0; i--) {
+      for (let i=this.tetrominoBag.length-1; i>0; i--) {
         swapIndex = Math.floor(Math.random() * i);
         temp = this.tetrominoBag[swapIndex];
         this.tetrominoBag[i] = this.tetrominoBag[swapIndex];
@@ -471,8 +477,8 @@ function Tetris(rows, columns) {
    */
   this.addTetrominoToWall = function() {
     // Add tetromino to wall
-    for (r=0; r<4; r++) {
-      for (c=0; c<4; c++) {
+    for (let r=0; r<4; r++) {
+      for (let c=0; c<4; c++) {
         if (this.currentTetromino[r][c] != this.blank) {
           this.wall[this.currentTetrominoRow+r][this.currentTetrominoCol+c] = 1;
           // TODO preserve the color of the tetromino
@@ -510,8 +516,8 @@ function Tetris(rows, columns) {
    * @@moveColumn - the column where the tetromino is to be placed
    */
   this.isMovePossible = function(tetromino, moveRow, moveColumn) {
-    for (r=0; r<4; r++) {
-      for (c=0; c<4; c++) {
+    for (let r=0; r<4; r++) {
+      for (let c=0; c<4; c++) {
         if (tetromino[r][c] != this.blank) {
           var boardRow = moveRow + r;
           var boardCol = moveColumn + c;
@@ -548,15 +554,16 @@ function Tetris(rows, columns) {
 }
 
 /**
- * resetWallAndBoard() - sets all the variables to play the game from the beginning.
+ * resetWallAndBoard() - sets all the variables to play the game from the 
+ *  beginning.
  */
 Tetris.prototype.resetWallAndBoard = function() {
   // TODO - do I need to explicity check if they don't equal null, then free
   //  memory and try again
-  for (r=0; r<this.numRows; r++) {
+  for (let r=0; r<this.numRows; r++) {
     this.wall[r] = [];
     this.board[r] = [];
-    for (c=0; c<this.numCols; c++) {
+    for (let c=0; c<this.numCols; c++) {
       this.wall[r][c] = this.blank;
       this.board[r][c] = this.blank;
     }
@@ -601,4 +608,3 @@ Tetris.prototype.moveTetromino = function(direction) {
 
   return didTetrominoMove;
 }
-
