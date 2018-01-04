@@ -15,7 +15,7 @@ function tetrisRun(element) {
                 tetrisGame.redrawGame();
             }
         }, 
-        tetrisGame.getTicks();
+        tetrisGame.getTicks()
     );
   
     // key handler
@@ -124,8 +124,8 @@ function TetrisGame(elementId) {
             break;
         case keyEnter:
         case keySpacebar:
-            if (tetris.getState() == tetris.stateEnum.On
-                  || tetris.getState() == tetris.stateEnum.Pause) {
+            if (tetris.getState() == tetris.stateEnum.On ||
+                tetris.getState() == tetris.stateEnum.Pause) {
                 tetris.togglePauseGame();
             } else {
                 tetris.newGame();
@@ -229,7 +229,7 @@ function TetrisGame(elementId) {
 
 function Tetris(rows, columns) {
   // emun function: https://github.com/RougeWare/Micro-JS-Enum
-  Enum=function(){v=arguments;s={all:[],keys:v};for(i=v.length;i--;)s[v[i]]=s.all[i]=i;return s}
+  Enum = function () { v = arguments; s = { all: [], keys: v }; for (i = v.length; i--;)s[v[i]] = s.all[i] = i; return s; };
   
   // represents the different ways the player can move the tetromino
   this.moveEnum = Enum(
@@ -324,54 +324,54 @@ function Tetris(rows, columns) {
 
   // METHODS
 
-  this.getState = function() {return this.state;}
-  this.getNumRows = function() {return this.numRows;}
-  this.getNumCols = function() {return this.numCols;}
-  this.getTicks = function() {return this.ticksMs;}
+  this.getState = function () { return this.state; };
+  this.getNumRows = function () { return this.numRows; };
+  this.getNumCols = function () { return this.numCols; };
+  this.getTicks = function () { return this.ticksMs; };
 
   /**
    * getBoard() returns the gameboard showing the current tetromino and the wall
    */
-  this.getBoard = function() {
+  this.getBoard = function () {
     // draw the active tetromino on the board if the game is on or over
     if (this.state == this.stateEnum.On || this.state == this.stateEnum.Over) {
       // copy the wall to the board
-      for (let r=0; r<this.numRows; r++) {
-        for (let c=0; c<this.numCols; c++) {
+      for (let r = 0; r < this.numRows; r++) {
+        for (let c = 0; c < this.numCols; c++) {
           this.board[r][c] = this.wall[r][c];
         }
       }
       // draw the current tetromino on the board
-      for (let r=0; r<4; r++) {
-        for (let c=0; c<4; c++) {
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
           if (this.currentTetromino[r][c] != this.blank) {
-            let row_index = this.currentTetrominoRow+r;
-            let col_index = this.currentTetrominoCol+c;
+            let row_index = this.currentTetrominoRow + r;
+            let col_index = this.currentTetrominoCol + c;
             this.board[row_index][col_index] = 1;
           }
         }
       }
-    } 
+    }
 
     // show an empty board if the game is paused (no cheating!) or off
-    else if (this.state == this.stateEnum.Pause || 
-             this.state == this.stateEnum.Off) {
-      for (let r=0; r<this.numRows; r++) {
-        for (let c=0; c<this.numCols; c++) {
+    else if (this.state == this.stateEnum.Pause ||
+      this.state == this.stateEnum.Off) {
+      for (let r = 0; r < this.numRows; r++) {
+        for (let c = 0; c < this.numCols; c++) {
           this.board[r][c] = this.blank;
         }
       }
     }
 
     return this.board;
-  }
+  };
 
   /**
    * newGame()
    */
-  this.newGame = function() {
-    if (this.state != this.stateEnum.Off && 
-        this.state != this.stateEnum.Over) {
+  this.newGame = function () {
+    if (this.state != this.stateEnum.Off &&
+      this.state != this.stateEnum.Over) {
       console.log('ERROR: Game already in progress.');
       return;
     }
@@ -380,7 +380,7 @@ function Tetris(rows, columns) {
     this.resetGame();
     this.state = this.stateEnum.On;
     this.spawnNewTetromino();
-  }
+  };
 
   /**
    * togglePauseGame() toggles the game state between paused and unpaused
@@ -393,20 +393,20 @@ function Tetris(rows, columns) {
       this.state = this.stateEnum.On;
       console.log('Game resumed.');
     }
-  }
+  };
 
   /**
    * gameLooop() updates the state of the game based on one turn passing. 
    *  Returns true if the game state has changed, false if it hasn't.
    */
-  this.loop = function() {
+  this.loop = function () {
     if (this.state != this.stateEnum.On) return false;
 
     console.log('Game loop running.');
 
     var canMoveDown = this.isMovePossible(
-      this.currentTetromino, 
-      this.currentTetrominoRow+1, 
+      this.currentTetromino,
+      this.currentTetrominoRow + 1,
       this.currentTetrominoCol
     );
     
@@ -417,12 +417,12 @@ function Tetris(rows, columns) {
     }
 
     return true;
-  }
+  };
 
   /**
    * resetGame() - sets all the variables to play the game from the beginning.
    */
-  this.resetGame = function() {
+  this.resetGame = function () {
     this.state = this.stateEnum.Off;
     this.currentTetromino = null;
     this.currentTetrominoRow = null;
@@ -431,16 +431,16 @@ function Tetris(rows, columns) {
     this.board = [];
 
     this.resetWallAndBoard();
-  }
+  };
 
   /**
    * getNextTetromino() - 
    */
-  this.getNextTetromino = function() {
+  this.getNextTetromino = function () {
     if (this.tetrominoBag.length == 0) {
       // refill the bag with two sets of every tetromino piece
-      this.tetrominoBag.push( 
-        tetrominos[this.tetrominoEnum.O], 
+      this.tetrominoBag.push(
+        tetrominos[this.tetrominoEnum.O],
         tetrominos[this.tetrominoEnum.O],
         tetrominos[this.tetrominoEnum.I],
         tetrominos[this.tetrominoEnum.I],
@@ -454,12 +454,12 @@ function Tetris(rows, columns) {
         tetrominos[this.tetrominoEnum.S],
         tetrominos[this.tetrominoEnum.Z],
         tetrominos[this.tetrominoEnum.Z]
-      );        
+      );
       
       // shuffle the pieces in a statistically reasonable way
       // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
       var swapIndex, temp;
-      for (let i=this.tetrominoBag.length-1; i>0; i--) {
+      for (let i = this.tetrominoBag.length - 1; i > 0; i--) {
         swapIndex = Math.floor(Math.random() * i);
         temp = this.tetrominoBag[swapIndex];
         this.tetrominoBag[i] = this.tetrominoBag[swapIndex];
@@ -469,33 +469,33 @@ function Tetris(rows, columns) {
 
     // return the top entry and remove it from the bag
     return this.tetrominoBag.splice(0, 1)[0];
-  }
+  };
 
   /**
    * addTetrominoToWall() adds the current tetromino to the wall and spawns a 
    *  new tetromino.
    */
-  this.addTetrominoToWall = function() {
+  this.addTetrominoToWall = function () {
     // Add tetromino to wall
-    for (let r=0; r<4; r++) {
-      for (let c=0; c<4; c++) {
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
         if (this.currentTetromino[r][c] != this.blank) {
-          this.wall[this.currentTetrominoRow+r][this.currentTetrominoCol+c] = 1;
+          this.wall[this.currentTetrominoRow + r][this.currentTetrominoCol + c] = 1;
           // TODO preserve the color of the tetromino
         }
       }
     }
   
     this.spawnNewTetromino();
-  }
+  };
 
   /**
    * spawnNewTetromino() 
    */
-  this.spawnNewTetromino = function() {
+  this.spawnNewTetromino = function () {
     console.log('Creating a new tetromino.');
     var initialRow = 0;
-    var initialColumn = (this.numCols/2)-2;
+    var initialColumn = (this.numCols / 2) - 2;
     var newTetromino = this.getNextTetromino();
 
     if (this.isMovePossible(newTetromino, initialRow, initialColumn)) {
@@ -506,7 +506,7 @@ function Tetris(rows, columns) {
       this.state = this.stateEnum.Over;
       console.log('Game over, you lose :(');
     }
-  }
+  };
 
   /**
    * isMovePossible() returns true if the new move is possible.
@@ -515,19 +515,19 @@ function Tetris(rows, columns) {
    * @@moveRow - the row where the tetromino is to be placed
    * @@moveColumn - the column where the tetromino is to be placed
    */
-  this.isMovePossible = function(tetromino, moveRow, moveColumn) {
-    for (let r=0; r<4; r++) {
-      for (let c=0; c<4; c++) {
+  this.isMovePossible = function (tetromino, moveRow, moveColumn) {
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
         if (tetromino[r][c] != this.blank) {
           var boardRow = moveRow + r;
           var boardCol = moveColumn + c;
 
           // is the tetromino exceeding the bottom of the board?
-          if (boardRow > (this.numRows-1))
+          if (boardRow > (this.numRows - 1))
             return false;
 
           // is the tetromino exceeding the left or right boundaries?
-          if (boardCol < 0 || boardCol > (this.numCols-1))
+          if (boardCol < 0 || boardCol > (this.numCols - 1))
             return false;
 
           // is the tetromino overlapping any part of the wall?
@@ -538,37 +538,37 @@ function Tetris(rows, columns) {
     }
 
     return true;
-  }
+  };
 
   /**
    * rotate() rotates the tetromino 90 degrees counter-clockwise
   */
-  this.rotate = function(t) {
-      return [
+  this.rotate = function (t) {
+    return [
       [t[0][3], t[1][3], t[2][3], t[3][3]],
       [t[0][2], t[1][2], t[2][2], t[3][2]],
       [t[0][1], t[1][1], t[2][1], t[3][1]],
       [t[0][0], t[1][0], t[2][0], t[3][0]],
-      ];
-  }
+    ];
+  };
 }
 
 /**
  * resetWallAndBoard() - sets all the variables to play the game from the 
  *  beginning.
  */
-Tetris.prototype.resetWallAndBoard = function() {
+Tetris.prototype.resetWallAndBoard = function () {
   // TODO - do I need to explicity check if they don't equal null, then free
   //  memory and try again
-  for (let r=0; r<this.numRows; r++) {
+  for (let r = 0; r < this.numRows; r++) {
     this.wall[r] = [];
     this.board[r] = [];
-    for (let c=0; c<this.numCols; c++) {
+    for (let c = 0; c < this.numCols; c++) {
       this.wall[r][c] = this.blank;
       this.board[r][c] = this.blank;
     }
   }
-}
+};
 
 /**
  * moveTetromino() returns true if the tetromino was moved, or false if the
@@ -576,7 +576,7 @@ Tetris.prototype.resetWallAndBoard = function() {
  * 
  * @@direction - Tetris.moveEnum for list of moves the player can make
  */
-Tetris.prototype.moveTetromino = function(direction) {
+Tetris.prototype.moveTetromino = function (direction) {
   var newRow = currentTetrominoRow;
   var newCol = currentTetrominoCol;
   var newTetromino = currentTetromino;
@@ -607,4 +607,4 @@ Tetris.prototype.moveTetromino = function(direction) {
   }
 
   return didTetrominoMove;
-}
+};
