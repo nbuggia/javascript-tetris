@@ -1,3 +1,5 @@
+# Tetris Readme
+
 Basic implementation of tetris in JavaScript. This is my holiday project over 
 Christmas 2016. It is a simple project to get more experience working with 
 JavaScript in the browser. 

@@ -1,6 +1,8 @@
 // https://scotch.io/bar-talk/4-javascript-design-patterns-you-should-know
 // jstherightway.org
 // tutorial: https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object_building_practice
+// https://addyosmani.com/resources/essentialjsdesignpatterns/book/
+
 
 // Basic Tetris implementation
 
@@ -456,14 +458,21 @@ function Tetris(rows, columns) {
         tetrominos[this.tetrominoEnum.Z]
       );
       
+      // TODO - there is something wrong in the shuffling logic. I think it is 
+      // copying tertominos instead of moving them. 
+
       // shuffle the pieces in a statistically reasonable way
       // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
       var swapIndex, temp;
-      for (let i = this.tetrominoBag.length - 1; i > 0; i--) {
+      for (let i = this.tetrominoBag.length - 1; i >= 0; i--) {
         swapIndex = Math.floor(Math.random() * i);
+        console.log("---")
+        console.log("Index: " + i);
+        console.log("SwapIndex: " + swapIndex);
         temp = this.tetrominoBag[swapIndex];
         this.tetrominoBag[i] = this.tetrominoBag[swapIndex];
         this.tetrominoBag[swapIndex] = temp;
+        console.log("Bag: " + this.tetrominoBag);
       }
     }
 
